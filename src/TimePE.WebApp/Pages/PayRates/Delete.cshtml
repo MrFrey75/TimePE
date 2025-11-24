@@ -1,0 +1,66 @@
+@page
+@model TimePE.WebApp.Pages.PayRates.DeleteModel
+@{
+    ViewData["Title"] = "Delete Pay Rate";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-trash"></i> Delete Pay Rate
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.PayRate != null)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Warning:</strong> Deleting a pay rate may affect historical calculations. Proceed with caution!
+                        </div>
+
+                        <h5 class="mb-3">Are you sure you want to delete this pay rate?</h5>
+
+                        <div class="card bg-light mb-4">
+                            <div class="card-body text-center">
+                                <h2 class="text-primary mb-2">
+                                    @Model.PayRate.HourlyRate.ToString("C")
+                                    <small class="text-muted fs-6">/hour</small>
+                                </h2>
+                                <dl class="row mb-0 mt-3">
+                                    <dt class="col-sm-6 text-end">Effective Date:</dt>
+                                    <dd class="col-sm-6 text-start">@Model.PayRate.EffectiveDate.ToString("MMMM dd, yyyy")</dd>
+
+                                    <dt class="col-sm-6 text-end">End Date:</dt>
+                                    <dd class="col-sm-6 text-start">
+                                        @if (Model.PayRate.EndDate.HasValue)
+                                        {
+                                            @Model.PayRate.EndDate.Value.ToString("MMMM dd, yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Current Rate</span>
+                                        }
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a asp-page="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Delete Pay Rate
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

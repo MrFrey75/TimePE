@@ -1,0 +1,146 @@
+@page
+@model TimePE.WebApp.Pages.TimeEntries.IndexModel
+@{
+    ViewData["Title"] = "Time Entries";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-6 fw-bold text-primary">
+                <i class="bi bi-clock"></i> Time Entries
+            </h1>
+            <p class="text-muted">Manage your time tracking records</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-page="Create" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> New Time Entry
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" name="startDate" 
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-4">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate" name="endDate" 
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Time Entries Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul"></i> Entries from @Model.StartDate.ToString("MMM dd, yyyy") to @Model.EndDate.ToString("MMM dd, yyyy")
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.TimeEntries.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Project</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th class="text-center">Duration</th>
+                                <th class="text-end">Pay Rate</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.TimeEntries)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            <i class="bi bi-calendar3"></i>
+                                            @entry.Date.ToString("MMM dd, yyyy")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">@(entry.Project?.Name ?? "N/A")</strong>
+                                    </td>
+                                    <td class="text-muted">@entry.StartTime.ToString(@"hh\:mm")</td>
+                                    <td class="text-muted">@entry.EndTime.ToString(@"hh\:mm")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">
+                                            @entry.Duration.ToString(@"h\h\ mm\m")
+                                        </span>
+                                    </td>
+                                    <td class="text-end text-muted">@entry.AppliedPayRate.ToString("C")/hr</td>
+                                    <td class="text-end">
+                                        <strong class="text-success">@entry.AmountOwed.ToString("C")</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-page="Edit" asp-route-id="@entry.Oid" class="btn btn-outline-primary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-page="Delete" asp-route-id="@entry.Oid" class="btn btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(entry.Notes))
+                                {
+                                    <tr class="table-light">
+                                        <td colspan="8" class="small text-muted">
+                                            <i class="bi bi-chat-left-text"></i> <em>@entry.Notes</em>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="4" class="text-end">Totals:</th>
+                                <th class="text-center">
+                                    <span class="badge bg-secondary">
+                                        @TimeSpan.FromHours((double)Model.TimeEntries.Sum(e => e.Duration.TotalHours)).ToString(@"h\h\ mm\m")
+                                    </span>
+                                </th>
+                                <th></th>
+                                <th class="text-end">
+                                    <strong class="text-success">@Model.TimeEntries.Sum(e => e.AmountOwed).ToString("C")</strong>
+                                </th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                    <h5>No time entries found</h5>
+                    <p>No entries found for the selected date range.</p>
+                    <a asp-page="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create Your First Entry
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,86 @@
+@page
+@model TimePE.WebApp.Pages.TimeEntries.CreateModel
+@{
+    ViewData["Title"] = "New Time Entry";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> New Time Entry
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.CurrentPayRate.HasValue)
+                    {
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle"></i>
+                            Current pay rate: <strong>@Model.CurrentPayRate.Value.ToString("C")/hour</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-4">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            No pay rate configured. Please <a asp-page="/PayRates/Create">create a pay rate</a> first.
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Date" class="form-label">Date</label>
+                                <input asp-for="Date" class="form-control" type="date" />
+                                <span asp-validation-for="Date" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ProjectId" class="form-label">Project</label>
+                                <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select">
+                                    <option value="">-- Select Project --</option>
+                                </select>
+                                <span asp-validation-for="ProjectId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="StartTime" class="form-label">Start Time</label>
+                                <input asp-for="StartTime" class="form-control" type="time" />
+                                <span asp-validation-for="StartTime" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="EndTime" class="form-label">End Time</label>
+                                <input asp-for="EndTime" class="form-control" type="time" />
+                                <span asp-validation-for="EndTime" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Notes" class="form-label">Notes <span class="text-muted">(optional)</span></label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Add any notes about this time entry..."></textarea>
+                                <span asp-validation-for="Notes" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-page="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Time Entry
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

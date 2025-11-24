@@ -1,0 +1,122 @@
+@page
+@model TimePE.WebApp.Pages.Incidentals.IndexModel
+@{
+    ViewData["Title"] = "Incidentals";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-6 fw-bold text-primary">
+                <i class="bi bi-receipt"></i> Incidentals
+            </h1>
+            <p class="text-muted">Track one-off amounts owed or owed by you</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-page="Create" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> New Incidental
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Amount Owed (to you)</h6>
+                    <h3 class="mb-0 text-success">@Model.TotalOwed.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Amount Owed By (you owe)</h6>
+                    <h3 class="mb-0 text-warning">@Model.TotalOwedBy.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Net Incidentals</h6>
+                    <h3 class="mb-0 @(Model.NetIncidentals >= 0 ? "text-success" : "text-danger")">
+                        @Model.NetIncidentals.ToString("C")
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incidentals Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Incidentals</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Incidentals.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var incidental in Model.Incidentals.OrderByDescending(i => i.Date))
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            <i class="bi bi-calendar3"></i>
+                                            @incidental.Date.ToString("MMM dd, yyyy")
+                                        </span>
+                                    </td>
+                                    <td>@incidental.Description</td>
+                                    <td>
+                                        <span class="badge @(incidental.Type == IncidentalType.Owed ? "bg-success" : "bg-warning")">
+                                            <i class="bi @(incidental.Type == IncidentalType.Owed ? "bi-arrow-down-circle" : "bi-arrow-up-circle")"></i>
+                                            @incidental.Type
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <strong class="@(incidental.Type == IncidentalType.Owed ? "text-success" : "text-warning")">
+                                            @incidental.Amount.ToString("C")
+                                        </strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-page="Edit" asp-route-id="@incidental.Oid" class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-page="Delete" asp-route-id="@incidental.Oid" class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                    <h5>No Incidentals</h5>
+                    <p>You haven't recorded any incidental amounts yet.</p>
+                    <a asp-page="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create First Incidental
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

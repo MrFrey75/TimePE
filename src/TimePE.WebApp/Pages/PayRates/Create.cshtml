@@ -1,0 +1,60 @@
+@page
+@model TimePE.WebApp.Pages.PayRates.CreateModel
+@{
+    ViewData["Title"] = "New Pay Rate";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> New Pay Rate
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Creating a new pay rate will automatically end-date any current active rate.
+                    </div>
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="HourlyRate" class="form-label">Hourly Rate</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="HourlyRate" class="form-control" type="number" step="0.01" min="0.01" 
+                                       placeholder="0.00" required />
+                                <span class="input-group-text">/hour</span>
+                            </div>
+                            <span asp-validation-for="HourlyRate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="EffectiveDate" class="form-label">Effective Date</label>
+                            <input asp-for="EffectiveDate" class="form-control" type="date" required />
+                            <div class="form-text">The date when this pay rate becomes active</div>
+                            <span asp-validation-for="EffectiveDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-page="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save"></i> Create Pay Rate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
