@@ -1,20 +1,32 @@
 using DevExpress.Xpo;
 using DevExpress.Xpo.DB;
 using Serilog;
+using Serilog.Events;
 using TimePE.Core.Database;
 using TimePE.Core.Database.Migrations;
 using TimePE.Core.Services;
 
+// Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json")
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
         .Build())
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "TimePE")
+    .Enrich.WithProperty("MachineName", Environment.MachineName)
+    .Enrich.WithProperty("ProcessId", Environment.ProcessId)
     .CreateLogger();
 
 try
 {
+    Log.Information("Starting TimePE application");
+    Log.Debug("Environment: {Environment}", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production");
+    
     var builder = WebApplication.CreateBuilder(args);
 
+    // Use Serilog for logging
     builder.Host.UseSerilog();
 
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
@@ -65,6 +77,27 @@ try
 
     var app = builder.Build();
 
+    // Configure request logging
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.GetLevel = (httpContext, elapsed, ex) => ex != null
+            ? LogEventLevel.Error
+            : httpContext.Response.StatusCode > 499
+                ? LogEventLevel.Error
+                : LogEventLevel.Information;
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+            if (httpContext.User.Identity?.IsAuthenticated == true)
+            {
+                diagnosticContext.Set("UserName", httpContext.User.Identity.Name);
+            }
+        };
+    });
+
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
@@ -81,14 +114,21 @@ try
 
     app.MapRazorPages();
 
-    Log.Information("TimePE application starting...");
+    Log.Information("TimePE application configured successfully");
+    Log.Information("Application starting on: {Environment}", app.Environment.EnvironmentName);
+    Log.Information("Content root: {ContentRoot}", app.Environment.ContentRootPath);
+    
     app.Run();
+    
+    Log.Information("TimePE application stopped cleanly");
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
 }
 finally
 {
+    Log.Information("Shutting down TimePE application");
     Log.CloseAndFlush();
 }

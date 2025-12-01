@@ -8,10 +8,23 @@ public interface ITimeEntryService
 {
     Task<TimeEntry> CreateTimeEntryAsync(DateTime date, TimeSpan startTime, TimeSpan endTime, int projectId, string? notes = null);
     Task<TimeEntry?> GetTimeEntryByIdAsync(int id);
+    Task<TimeEntryDeleteViewModel?> GetTimeEntryDeleteInfoAsync(int id);
     Task<IEnumerable<TimeEntry>> GetTimeEntriesByDateRangeAsync(DateTime startDate, DateTime endDate);
     Task<IEnumerable<TimeEntry>> GetTimeEntriesByProjectAsync(int projectId);
     Task UpdateTimeEntryAsync(TimeEntry timeEntry);
     Task DeleteTimeEntryAsync(int id);
+}
+
+public class TimeEntryDeleteViewModel
+{
+    public int Id { get; set; }
+    public DateTime Date { get; set; }
+    public string? ProjectName { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+    public TimeSpan Duration { get; set; }
+    public decimal AmountOwed { get; set; }
+    public string? Notes { get; set; }
 }
 
 public class TimeEntryService : ITimeEntryService
@@ -62,6 +75,32 @@ public class TimeEntryService : ITimeEntryService
         {
             using var session = new Session(XpoDefault.DataLayer);
             return session.GetObjectByKey<TimeEntry>(id);
+        });
+    }
+
+    public async Task<TimeEntryDeleteViewModel?> GetTimeEntryDeleteInfoAsync(int id)
+    {
+        return await Task.Run(() =>
+        {
+            using var session = new Session(XpoDefault.DataLayer);
+            var timeEntry = session.GetObjectByKey<TimeEntry>(id);
+            if (timeEntry == null)
+                return null;
+
+            // Load related data while the session is still active
+            var projectName = timeEntry.Project?.Name;
+
+            return new TimeEntryDeleteViewModel
+            {
+                Id = timeEntry.Oid,
+                Date = timeEntry.Date,
+                ProjectName = projectName,
+                StartTime = timeEntry.StartTime,
+                EndTime = timeEntry.EndTime,
+                Duration = timeEntry.Duration,
+                AmountOwed = timeEntry.AmountOwed,
+                Notes = timeEntry.Notes
+            };
         });
     }
 
@@ -117,7 +156,8 @@ public class TimeEntryService : ITimeEntryService
             var timeEntry = uow.GetObjectByKey<TimeEntry>(id);
             if (timeEntry != null)
             {
-                timeEntry.Delete();
+                timeEntry.DeletedAt = DateTime.UtcNow;
+                uow.CommitChanges();
             }
         });
     }

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
-using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.TimeEntries;
 
@@ -16,11 +15,11 @@ public class DeleteModel : PageModel
         _timeEntryService = timeEntryService;
     }
 
-    public TimeEntry? TimeEntry { get; set; }
+    public TimeEntryDeleteViewModel? TimeEntry { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        TimeEntry = await _timeEntryService.GetTimeEntryByIdAsync(id);
+        TimeEntry = await _timeEntryService.GetTimeEntryDeleteInfoAsync(id);
         if (TimeEntry == null)
             return NotFound();
 

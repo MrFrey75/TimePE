@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
-using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.Projects;
 
@@ -16,15 +15,18 @@ public class DeleteModel : PageModel
         _projectService = projectService;
     }
 
-    public Project? Project { get; set; }
+    public ProjectDeleteViewModel? Project { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Project = await _projectService.GetProjectByIdAsync(id);
-        if (Project == null)
+        // We need to load the data inside a service method to avoid disposed object issues
+        var deleteInfo = await _projectService.GetProjectDeleteInfoAsync(id);
+        if (deleteInfo == null)
             return NotFound();
 
-        return Page();
+        Project = deleteInfo;
+        return Page()
+;
     }
 
     public async Task<IActionResult> OnPostAsync(int id)
