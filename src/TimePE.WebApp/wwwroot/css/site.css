@@ -564,19 +564,198 @@ select:focus {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* Mobile Touch Targets */
+/* ============================================
+   MOBILE RESPONSIVENESS ENHANCEMENTS
+   ============================================ */
+
+/* Touch-Friendly Controls - WCAG Compliant */
 @media (max-width: 767px) {
-  .btn-group-sm .btn {
+  /* All interactive elements minimum 48x48px */
+  .btn-group-sm .btn,
+  .btn-toolbar .btn,
+  .pagination .page-link,
+  a.btn,
+  button {
     min-width: 48px;
     min-height: 48px;
+    touch-action: manipulation;
   }
   
+  /* Larger text for readability */
+  body {
+    font-size: 16px;
+  }
+  
+  /* Responsive tables */
   .table {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .table tbody td {
     padding: 0.75rem 0.5rem;
+  }
+  
+  /* Stack table on very small screens */
+  .table-responsive-stack tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+  }
+  
+  .table-responsive-stack td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem !important;
+    border: none !important;
+  }
+  
+  .table-responsive-stack td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-right: 1rem;
+  }
+  
+  /* Card spacing on mobile */
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Larger form controls */
+  .form-control,
+  .form-select,
+  select {
+    min-height: 48px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Button groups stack on mobile */
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .btn-group .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Navigation improvements */
+  .navbar-collapse {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  .nav-link {
+    padding: 1rem !important;
+    font-size: 1.125rem;
+  }
+  
+  /* Dropdowns full width on mobile */
+  .dropdown-menu {
+    width: 100%;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Modal adjustments */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 991px) {
+  .container-fluid {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .btn {
+    min-height: 44px;
+  }
+  
+  .table {
+    font-size: 0.95rem;
+  }
+}
+
+/* Large touch screens */
+@media (min-width: 992px) {
+  /* Hover effects only on devices that support hover */
+  @media (hover: hover) {
+    .card:hover {
+      transform: translateY(-3px);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .navbar-collapse {
+    max-height: 50vh;
+  }
+  
+  .modal-dialog {
+    max-width: 90vw;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode preference (already dark, but respect system) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* PWA Safe Areas for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  .navbar {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .footer {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
 
