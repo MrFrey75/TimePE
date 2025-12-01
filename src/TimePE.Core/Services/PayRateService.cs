@@ -29,7 +29,7 @@ public class PayRateService : IPayRateService
         {
             using var uow = new UnitOfWork(XpoDefault.DataLayer);
             
-            var criteria = CriteriaOperator.Parse("EndDate Is Null And DeletedAt Is Null");
+            var criteria = CriteriaOperator.Parse("EndDate Is Null");
             var currentRate = uow.FindObject<PayRate>(criteria);
 
             if (currentRate != null)
@@ -62,7 +62,7 @@ public class PayRateService : IPayRateService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
-            var criteria = CriteriaOperator.Parse("EndDate Is Null And DeletedAt Is Null");
+            var criteria = CriteriaOperator.Parse("EndDate Is Null");
             var collection = new XPCollection<PayRate>(session, criteria);
             collection.Sorting.Add(new SortProperty("EffectiveDate", DevExpress.Xpo.DB.SortingDirection.Descending));
             return collection.FirstOrDefault();
@@ -74,7 +74,7 @@ public class PayRateService : IPayRateService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
-            var criteria = CriteriaOperator.Parse("EffectiveDate <= ? And (EndDate Is Null Or EndDate >= ?) And DeletedAt Is Null", date, date);
+            var criteria = CriteriaOperator.Parse("EffectiveDate <= ? And (EndDate Is Null Or EndDate >= ?)", date, date);
             var collection = new XPCollection<PayRate>(session, criteria);
             collection.Sorting.Add(new SortProperty("EffectiveDate", DevExpress.Xpo.DB.SortingDirection.Descending));
             return collection.FirstOrDefault();

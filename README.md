@@ -13,6 +13,7 @@ This README provides a concise overview, quick setup steps, architecture notes, 
 - Show a running balance on the dashboard tracking owed vs. paid amounts.
 - Allow entry of incidentals (one-off amounts owed to or by the user).
 - Simple cookie-based authentication system for secure access.
+- **Progressive Web App (PWA)** support - installable on desktop and mobile devices, works offline, provides native app-like experience.
 
 ## Tech stack
 
@@ -21,6 +22,7 @@ This README provides a concise overview, quick setup steps, architecture notes, 
 - DevExpress XPO (Object-Relational Mapping with built-in soft delete support)
 - Dependency Injection using built-in Microsoft DI
 - Serilog for structured logging
+- PWA (Service Worker, Web App Manifest, offline support)
 
 ## Repository layout
 
@@ -46,7 +48,28 @@ dotnet build
 dotnet run --project src/TimePE.WebApp/TimePE.WebApp.csproj
 ```
 
-If the WebApp is an ASP.NET project it will print the local URL (usually https://localhost:5001 or http://localhost:5000). Open that in your browser.
+If the WebApp is an ASP.NET project it will print the local URL (usually http://localhost:5176). Open that in your browser.
+
+### Testing PWA Features
+
+The application is a fully-featured Progressive Web App:
+
+**Install as Desktop App:**
+1. Open http://localhost:5176 in Chrome or Edge
+2. Look for the install icon (⊕) in the address bar
+3. Click "Install TimePE"
+4. The app opens in a standalone window
+
+**Install on Mobile:**
+- **Android:** Chrome menu → "Install app" or "Add to Home screen"
+- **iOS:** Safari Share button → "Add to Home Screen"
+
+**Test Offline Support:**
+1. Open the app and navigate a few pages
+2. Open DevTools → Network tab → Set to "Offline"
+3. Reload and navigate - static assets load from cache
+
+For detailed PWA documentation, see [docs/PWA_IMPLEMENTATION.md](docs/PWA_IMPLEMENTATION.md).
 
 ## Authentication
 
@@ -94,12 +117,20 @@ Coding conventions:
 - ✅ User login/logout functionality
 - ✅ Automatic default user creation
 - ✅ Protected routes with authorization
+- ✅ User profile management (change username/password)
+- ✅ CSV import/export functionality
+- ✅ Automatic data seeding (General project, default pay rate)
+- ✅ Comprehensive Serilog logging system
+- ✅ Soft delete implementation using XPO's built-in system
+- ✅ Mobile-responsive design with touch-friendly controls
+- ✅ Progressive Web App (PWA) support with offline capabilities
 
 ### Planned
-- Password change functionality
-- User profile management
-- Enhanced reporting features
-- Export capabilities
+- Enhanced reporting features with more filters
+- Advanced dashboard analytics
+- Time entry templates
+- Project budgeting and tracking
+- Multi-user support (future consideration)
 
 ## Where to look in the code
 
