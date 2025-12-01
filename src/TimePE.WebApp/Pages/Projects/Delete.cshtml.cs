@@ -19,24 +19,14 @@ public class DeleteModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var project = await _projectService.GetProjectByIdAsync(id);
-        if (project == null)
+        // We need to load the data inside a service method to avoid disposed object issues
+        var deleteInfo = await _projectService.GetProjectDeleteInfoAsync(id);
+        if (deleteInfo == null)
             return NotFound();
 
-        // Load the count before the session is disposed
-        var timeEntriesCount = project.TimeEntries?.Count ?? 0;
-
-        // Create view model with the data we need
-        Project = new ProjectDeleteViewModel
-        {
-            Id = project.Oid,
-            Name = project.Name,
-            Description = project.Description,
-            IsActive = project.IsActive,
-            TimeEntriesCount = timeEntriesCount
-        };
-
-        return Page();
+        Project = deleteInfo;
+        return Page()
+;
     }
 
     public async Task<IActionResult> OnPostAsync(int id)
@@ -44,14 +34,5 @@ public class DeleteModel : PageModel
         await _projectService.DeleteProjectAsync(id);
         TempData["SuccessMessage"] = "Project deleted successfully!";
         return RedirectToPage("Index");
-    }
-
-    public class ProjectDeleteViewModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public bool IsActive { get; set; }
-        public int TimeEntriesCount { get; set; }
     }
 }

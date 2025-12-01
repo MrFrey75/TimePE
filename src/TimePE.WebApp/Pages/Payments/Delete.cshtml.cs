@@ -23,7 +23,7 @@ public class DeleteModel : PageModel
         if (payment == null)
             return NotFound();
 
-        // Create view model with the data we need
+        // Create view model with the data we need (loaded while session is active)
         Payment = new PaymentDeleteViewModel
         {
             Id = payment.Oid,

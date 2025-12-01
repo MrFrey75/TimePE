@@ -9,11 +9,21 @@ public interface IProjectService
 {
     Task<Project> CreateProjectAsync(string name, string? description = null);
     Task<Project?> GetProjectByIdAsync(int id);
+    Task<ProjectDeleteViewModel?> GetProjectDeleteInfoAsync(int id);
     Task<IEnumerable<Project>> GetActiveProjectsAsync();
     Task<IEnumerable<Project>> GetAllProjectsAsync(bool includeDeleted = false);
     Task<IEnumerable<ProjectSummaryDto>> GetAllProjectSummariesAsync(bool includeDeleted = false);
     Task UpdateProjectAsync(Project project);
     Task DeleteProjectAsync(int id);
+}
+
+public class ProjectDeleteViewModel
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public int TimeEntriesCount { get; set; }
 }
 
 public class ProjectService : IProjectService
@@ -47,6 +57,29 @@ public class ProjectService : IProjectService
         {
             using var session = new Session(XpoDefault.DataLayer);
             return session.GetObjectByKey<Project>(id);
+        });
+    }
+
+    public async Task<ProjectDeleteViewModel?> GetProjectDeleteInfoAsync(int id)
+    {
+        return await Task.Run(() =>
+        {
+            using var session = new Session(XpoDefault.DataLayer);
+            var project = session.GetObjectByKey<Project>(id);
+            if (project == null)
+                return null;
+
+            // Load the collection count while the session is still active
+            var timeEntriesCount = project.TimeEntries?.Count ?? 0;
+
+            return new ProjectDeleteViewModel
+            {
+                Id = project.Oid,
+                Name = project.Name,
+                Description = project.Description,
+                IsActive = project.IsActive,
+                TimeEntriesCount = timeEntriesCount
+            };
         });
     }
 

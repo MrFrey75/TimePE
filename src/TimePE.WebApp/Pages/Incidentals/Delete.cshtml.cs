@@ -24,7 +24,7 @@ public class DeleteModel : PageModel
         if (incidental == null)
             return NotFound();
 
-        // Create view model with the data we need
+        // Create view model with the data we need (loaded while session is active)
         Incidental = new IncidentalDeleteViewModel
         {
             Id = incidental.Oid,

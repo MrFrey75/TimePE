@@ -73,7 +73,6 @@ public class PaymentService : IPaymentService
         });
     }
 
-                payRate.Delete();
     public async Task UpdatePaymentAsync(Payment payment)
     {
         await Task.Run(() =>
