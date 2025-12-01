@@ -13,11 +13,46 @@
             <p class="text-muted">Manage your time tracking records</p>
         </div>
         <div class="col-md-4 text-end">
-            <a asp-page="Create" class="btn btn-primary btn-lg">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Import/Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <i class="bi bi-upload"></i> Import CSV
+                        </button>
+                    </li>
+                    <li>
+                        <form method="post" asp-page-handler="Export" class="d-inline">
+                            <input type="hidden" name="startDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="endDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                            <button type="submit" class="dropdown-item">
+                                <i class="bi bi-download"></i> Export to CSV
+                            </button>
+                        </form>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a asp-page-handler="DownloadSample" class="dropdown-item">
+                            <i class="bi bi-file-earmark-text"></i> Download Sample CSV
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <a asp-page="Create" class="btn btn-primary btn-lg ms-2">
                 <i class="bi bi-plus-circle"></i> New Time Entry
             </a>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(Model.ImportMessage))
+    {
+        <div class="alert @(Model.ImportSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            <i class="bi @(Model.ImportSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill")"></i> @Model.ImportMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <!-- Date Filter -->
     <div class="card border-0 shadow-sm mb-4">
@@ -141,6 +176,48 @@
                     </a>
                 </div>
             }
+        </div>
+    </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="bi bi-upload"></i> Import Time Entries from CSV
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-page-handler="Import" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="csvFile" name="CsvFile" accept=".csv" required />
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> Upload a CSV file with time entries. 
+                            <a asp-page-handler="DownloadSample">Download sample template</a>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>CSV Format:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Date: YYYY-MM-DD format</li>
+                            <li>Project: Project name (will be created if doesn't exist)</li>
+                            <li>Start Time: HH:MM format (24-hour)</li>
+                            <li>End Time: HH:MM format (24-hour)</li>
+                            <li>Notes: Optional</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

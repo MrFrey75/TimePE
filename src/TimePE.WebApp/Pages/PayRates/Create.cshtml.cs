@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
 
 namespace TimePE.WebApp.Pages.PayRates;
 
+[Authorize]
 public class CreateModel : PageModel
 {
     private readonly IPayRateService _payRateService;

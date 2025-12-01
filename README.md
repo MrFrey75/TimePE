@@ -12,7 +12,7 @@ This README provides a concise overview, quick setup steps, architecture notes, 
 - Provide weekly report generation suitable for submitting to management.
 - Show a running balance on the dashboard tracking owed vs. paid amounts.
 - Allow entry of incidentals (one-off amounts owed to or by the user).
-- Simple WebApp user login.
+- Simple cookie-based authentication system for secure access.
 
 ## Tech stack
 
@@ -48,6 +48,19 @@ dotnet run --project src/TimePE.WebApp/TimePE.WebApp.csproj
 
 If the WebApp is an ASP.NET project it will print the local URL (usually https://localhost:5001 or http://localhost:5000). Open that in your browser.
 
+## Authentication
+
+The application uses cookie-based authentication to protect all pages. On first run, a default user account is automatically created:
+
+- **Username:** `admin`
+- **Password:** `admin123`
+
+**Important:** Change the default password after first login for security.
+
+All application pages require authentication except the login page. Sessions persist for:
+- 30 days if "Remember me" is checked
+- 8 hours for standard sessions
+
 Notes about the database:
 
 - The app uses SQLite with DevExpress XPO. The database file path and connection string live in the WebApp's `appsettings.json`. Look for a ConnectionStrings entry such as `DefaultConnection`.
@@ -76,14 +89,25 @@ Coding conventions:
 
 ## Roadmap / Next steps
 
-- Coming Soon
+### Completed
+- ✅ Cookie-based authentication system
+- ✅ User login/logout functionality
+- ✅ Automatic default user creation
+- ✅ Protected routes with authorization
+
+### Planned
+- Password change functionality
+- User profile management
+- Enhanced reporting features
+- Export capabilities
 
 ## Where to look in the code
 
-- `src/TimePE.Core/Models` - XPO persistent classes for time entries, projects, pay rates, and incidentals.
-- `src/TimePE.Core/Services` - business logic: creating time entries, applying pay rates, computing balances, soft-delete handling.
-- `src/TimePE.Core/Database` - XPO data layer initialization and schema setup.
-- `src/TimePE.WebApp/` - UI/API project and appsettings for connection strings.
+- `src/TimePE.Core/Models` - XPO persistent classes for time entries, projects, pay rates, incidentals, and users.
+- `src/TimePE.Core/Services` - business logic: creating time entries, applying pay rates, computing balances, soft-delete handling, authentication.
+- `src/TimePE.Core/Database` - XPO data layer initialization, schema setup, and user initialization.
+- `src/TimePE.WebApp/Pages/Account` - Login and logout pages.
+- `src/TimePE.WebApp/` - UI/API project, authentication configuration, and appsettings for connection strings.
 
 ## Support / Questions
 

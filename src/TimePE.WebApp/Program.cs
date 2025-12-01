@@ -25,6 +25,15 @@ try
     var initializer = new DatabaseInitializer();
     initializer.Initialize(connectionString);
 
+    var userInitializer = new UserInitializer(connectionString);
+    await userInitializer.InitializeDefaultUserAsync();
+
+    var projectInitializer = new ProjectInitializer(connectionString);
+    await projectInitializer.InitializeDefaultProjectsAsync();
+
+    var payRateInitializer = new PayRateInitializer(connectionString);
+    await payRateInitializer.InitializeDefaultPayRateAsync();
+
     builder.Services.AddSingleton(connectionString);
     builder.Services.AddScoped<IProjectService, ProjectService>(sp => new ProjectService(connectionString));
     builder.Services.AddScoped<IPayRateService, PayRateService>(sp => new PayRateService(connectionString));
@@ -33,6 +42,24 @@ try
     builder.Services.AddScoped<IIncidentalService, IncidentalService>(sp => new IncidentalService(connectionString));
     builder.Services.AddScoped<IPaymentService, PaymentService>(sp => new PaymentService(connectionString));
     builder.Services.AddScoped<IDashboardService, DashboardService>(sp => new DashboardService(connectionString));
+    builder.Services.AddScoped<IAuthService, AuthService>(sp => new AuthService(connectionString));
+    builder.Services.AddScoped<ICsvService, CsvService>(sp => new CsvService(
+        sp.GetRequiredService<ITimeEntryService>(),
+        sp.GetRequiredService<IProjectService>(),
+        connectionString));
+
+    builder.Services.AddAuthentication("CookieAuth")
+        .AddCookie("CookieAuth", options =>
+        {
+            options.Cookie.Name = "TimePE.Auth";
+            options.LoginPath = "/Account/Login";
+            options.LogoutPath = "/Account/Logout";
+            options.AccessDeniedPath = "/Account/Login";
+            options.ExpireTimeSpan = TimeSpan.FromDays(30);
+            options.SlidingExpiration = true;
+        });
+
+    builder.Services.AddAuthorization();
 
     builder.Services.AddRazorPages();
 
@@ -49,6 +76,7 @@ try
 
     app.UseRouting();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapRazorPages();

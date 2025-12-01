@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
 using TimePE.Core.DTOs;
 
 namespace TimePE.WebApp.Pages.Projects;
 
+[Authorize]
 public class IndexModel : PageModel
 {
     private readonly IProjectService _projectService;

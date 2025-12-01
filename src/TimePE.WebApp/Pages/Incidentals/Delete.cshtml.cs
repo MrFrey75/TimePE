@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
@@ -5,6 +6,7 @@ using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.Incidentals;
 
+[Authorize]
 public class DeleteModel : PageModel
 {
     private readonly IIncidentalService _incidentalService;

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
@@ -6,6 +7,7 @@ using DevExpress.Xpo;
 
 namespace TimePE.WebApp.Pages.Payments;
 
+[Authorize]
 public class EditModel : PageModel
 {
     private readonly IPaymentService _paymentService;

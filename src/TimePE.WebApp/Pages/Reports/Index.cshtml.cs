@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
@@ -5,6 +6,7 @@ using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.Reports;
 
+[Authorize]
 public class IndexModel : PageModel
 {
     private readonly ITimeEntryService _timeEntryService;
