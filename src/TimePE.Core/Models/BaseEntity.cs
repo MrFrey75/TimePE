@@ -2,7 +2,12 @@ using DevExpress.Xpo;
 
 namespace TimePE.Core.Models;
 
-[DeferredDeletion(false)]
+/// <summary>
+/// Base entity with audit fields and XPO's built-in soft delete support.
+/// When an entity is deleted, XPO sets GCRecord != null instead of physically removing it.
+/// To query non-deleted entities, XPO automatically filters them unless you use Session.Delete() or query GCRecord explicitly.
+/// </summary>
+[DeferredDeletion(true)] // Enable XPO's built-in soft delete (GCRecord-based)
 public abstract class BaseEntity : XPObject
 {
     public BaseEntity(Session session) : base(session) { }
@@ -21,18 +26,5 @@ public abstract class BaseEntity : XPObject
     {
         get => _updatedAt;
         set => SetPropertyValue(nameof(UpdatedAt), ref _updatedAt, value);
-    }
-
-    DateTime? _deletedAt;
-    [Persistent]
-    public DateTime? DeletedAt
-    {
-        get => _deletedAt;
-        set => SetPropertyValue(nameof(DeletedAt), ref _deletedAt, value);
-    }
-
-    public new void Delete()
-    {
-        DeletedAt = DateTime.UtcNow;
     }
 }
