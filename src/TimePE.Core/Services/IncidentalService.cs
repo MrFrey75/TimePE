@@ -100,7 +100,8 @@ public class IncidentalService : IIncidentalService
             var incidental = uow.GetObjectByKey<Incidental>(id);
             if (incidental != null)
             {
-                incidental.Delete();
+                incidental.DeletedAt = DateTime.UtcNow;
+                uow.CommitChanges();
             }
         });
     }

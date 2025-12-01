@@ -123,7 +123,8 @@ public class ProjectService : IProjectService
             var project = uow.GetObjectByKey<Project>(id);
             if (project != null)
             {
-                project.Delete();
+                project.DeletedAt = DateTime.UtcNow;
+                uow.CommitChanges();
             }
         });
     }

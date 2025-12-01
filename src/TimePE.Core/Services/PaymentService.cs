@@ -73,6 +73,7 @@ public class PaymentService : IPaymentService
         });
     }
 
+                payRate.Delete();
     public async Task UpdatePaymentAsync(Payment payment)
     {
         await Task.Run(() =>
@@ -98,7 +99,8 @@ public class PaymentService : IPaymentService
             var payment = uow.GetObjectByKey<Payment>(id);
             if (payment != null)
             {
-                payment.Delete();
+                payment.DeletedAt = DateTime.UtcNow;
+                uow.CommitChanges();
             }
         });
     }

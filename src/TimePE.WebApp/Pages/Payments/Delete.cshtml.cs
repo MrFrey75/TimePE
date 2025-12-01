@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
-using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.Payments;
 
@@ -16,13 +15,22 @@ public class DeleteModel : PageModel
         _paymentService = paymentService;
     }
 
-    public Payment? Payment { get; set; }
+    public PaymentDeleteViewModel? Payment { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Payment = await _paymentService.GetPaymentByIdAsync(id);
-        if (Payment == null)
+        var payment = await _paymentService.GetPaymentByIdAsync(id);
+        if (payment == null)
             return NotFound();
+
+        // Create view model with the data we need
+        Payment = new PaymentDeleteViewModel
+        {
+            Id = payment.Oid,
+            Date = payment.Date,
+            Amount = payment.Amount,
+            Notes = payment.Notes
+        };
 
         return Page();
     }
@@ -32,5 +40,13 @@ public class DeleteModel : PageModel
         await _paymentService.DeletePaymentAsync(id);
         TempData["SuccessMessage"] = "Payment deleted successfully!";
         return RedirectToPage("Index");
+    }
+
+    public class PaymentDeleteViewModel
+    {
+        public int Id { get; set; }
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
+        public string? Notes { get; set; }
     }
 }

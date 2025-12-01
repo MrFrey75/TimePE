@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
-using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.Projects;
 
@@ -16,13 +15,26 @@ public class DeleteModel : PageModel
         _projectService = projectService;
     }
 
-    public Project? Project { get; set; }
+    public ProjectDeleteViewModel? Project { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Project = await _projectService.GetProjectByIdAsync(id);
-        if (Project == null)
+        var project = await _projectService.GetProjectByIdAsync(id);
+        if (project == null)
             return NotFound();
+
+        // Load the count before the session is disposed
+        var timeEntriesCount = project.TimeEntries?.Count ?? 0;
+
+        // Create view model with the data we need
+        Project = new ProjectDeleteViewModel
+        {
+            Id = project.Oid,
+            Name = project.Name,
+            Description = project.Description,
+            IsActive = project.IsActive,
+            TimeEntriesCount = timeEntriesCount
+        };
 
         return Page();
     }
@@ -32,5 +44,14 @@ public class DeleteModel : PageModel
         await _projectService.DeleteProjectAsync(id);
         TempData["SuccessMessage"] = "Project deleted successfully!";
         return RedirectToPage("Index");
+    }
+
+    public class ProjectDeleteViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public bool IsActive { get; set; }
+        public int TimeEntriesCount { get; set; }
     }
 }

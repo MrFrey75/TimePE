@@ -101,7 +101,8 @@ public class PayRateService : IPayRateService
             var payRate = uow.GetObjectByKey<PayRate>(id);
             if (payRate != null)
             {
-                payRate.Delete();
+                payRate.DeletedAt = DateTime.UtcNow;
+                uow.CommitChanges();
             }
         });
     }

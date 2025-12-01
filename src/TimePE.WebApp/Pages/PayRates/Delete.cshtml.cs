@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TimePE.Core.Services;
-using TimePE.Core.Models;
 
 namespace TimePE.WebApp.Pages.PayRates;
 
@@ -16,13 +15,22 @@ public class DeleteModel : PageModel
         _payRateService = payRateService;
     }
 
-    public PayRate? PayRate { get; set; }
+    public PayRateDeleteViewModel? PayRate { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        PayRate = await _payRateService.GetPayRateByIdAsync(id);
-        if (PayRate == null)
+        var payRate = await _payRateService.GetPayRateByIdAsync(id);
+        if (payRate == null)
             return NotFound();
+
+        // Create view model with the data we need
+        PayRate = new PayRateDeleteViewModel
+        {
+            Id = payRate.Oid,
+            HourlyRate = payRate.HourlyRate,
+            EffectiveDate = payRate.EffectiveDate,
+            EndDate = payRate.EndDate
+        };
 
         return Page();
     }
@@ -32,5 +40,13 @@ public class DeleteModel : PageModel
         await _payRateService.DeletePayRateAsync(id);
         TempData["SuccessMessage"] = "Pay rate deleted successfully!";
         return RedirectToPage("Index");
+    }
+
+    public class PayRateDeleteViewModel
+    {
+        public int Id { get; set; }
+        public decimal HourlyRate { get; set; }
+        public DateTime EffectiveDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }

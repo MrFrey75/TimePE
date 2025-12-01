@@ -28,7 +28,7 @@
                             <dd class="col-sm-8">@Model.TimeEntry.Date.ToString("MMMM dd, yyyy")</dd>
 
                             <dt class="col-sm-4">Project</dt>
-                            <dd class="col-sm-8">@(Model.TimeEntry.Project?.Name ?? "N/A")</dd>
+                            <dd class="col-sm-8">@(Model.TimeEntry.ProjectName ?? "N/A")</dd>
 
                             <dt class="col-sm-4">Time</dt>
                             <dd class="col-sm-8">

@@ -117,7 +117,8 @@ public class TimeEntryService : ITimeEntryService
             var timeEntry = uow.GetObjectByKey<TimeEntry>(id);
             if (timeEntry != null)
             {
-                timeEntry.Delete();
+                timeEntry.DeletedAt = DateTime.UtcNow;
+                uow.CommitChanges();
             }
         });
     }
