@@ -53,8 +53,9 @@ public class IncidentalService : IIncidentalService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
+            // XPO automatically filters out soft-deleted records
             return new XPQuery<Incidental>(session)
-                .Where(i => i.Date >= startDate && i.Date <= endDate && i.DeletedAt == null)
+                .Where(i => i.Date >= startDate && i.Date <= endDate)
                 .OrderByDescending(i => i.Date)
                 .ToList();
         });
@@ -65,11 +66,8 @@ public class IncidentalService : IIncidentalService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
+            // XPO automatically filters deleted records with DeferredDeletion(true)
             var query = new XPQuery<Incidental>(session);
-            if (!includeDeleted)
-            {
-                query = (XPQuery<Incidental>)query.Where(i => i.DeletedAt == null);
-            }
             return query.OrderByDescending(i => i.Date).ToList();
         });
     }
@@ -100,7 +98,8 @@ public class IncidentalService : IIncidentalService
             var incidental = uow.GetObjectByKey<Incidental>(id);
             if (incidental != null)
             {
-                incidental.DeletedAt = DateTime.UtcNow;
+                // XPO's built-in soft delete - sets GCRecord automatically
+                incidental.Delete();
                 uow.CommitChanges();
             }
         });

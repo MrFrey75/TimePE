@@ -52,8 +52,9 @@ public class PaymentService : IPaymentService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
+            // XPO automatically filters out soft-deleted records
             return new XPQuery<Payment>(session)
-                .Where(p => p.Date >= startDate && p.Date <= endDate && p.DeletedAt == null)
+                .Where(p => p.Date >= startDate && p.Date <= endDate)
                 .OrderByDescending(p => p.Date)
                 .ToList();
         });
@@ -64,11 +65,8 @@ public class PaymentService : IPaymentService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
+            // XPO automatically filters deleted records with DeferredDeletion(true)
             var query = new XPQuery<Payment>(session);
-            if (!includeDeleted)
-            {
-                query = (XPQuery<Payment>)query.Where(p => p.DeletedAt == null);
-            }
             return query.OrderByDescending(p => p.Date).ToList();
         });
     }
@@ -98,7 +96,8 @@ public class PaymentService : IPaymentService
             var payment = uow.GetObjectByKey<Payment>(id);
             if (payment != null)
             {
-                payment.DeletedAt = DateTime.UtcNow;
+                // XPO's built-in soft delete - sets GCRecord automatically
+                payment.Delete();
                 uow.CommitChanges();
             }
         });

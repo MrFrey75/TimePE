@@ -19,8 +19,8 @@ public class PayRateInitializer
         uow.ConnectionString = _connectionString;
 
         // Check if any pay rate exists
-        var payRateCount = await Task.Run(() => uow.Query<PayRate>()
-            .Count(p => p.DeletedAt == null));
+        // XPO automatically filters out soft-deleted records
+        var payRateCount = await Task.Run(() => uow.Query<PayRate>().Count());
 
         if (payRateCount == 0)
         {

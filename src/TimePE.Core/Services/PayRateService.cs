@@ -86,8 +86,8 @@ public class PayRateService : IPayRateService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
-            var criteria = includeDeleted ? null : CriteriaOperator.Parse("DeletedAt Is Null");
-            var collection = new XPCollection<PayRate>(session, criteria);
+            // XPO automatically filters deleted records with DeferredDeletion(true)
+            var collection = new XPCollection<PayRate>(session);
             collection.Sorting.Add(new SortProperty("EffectiveDate", DevExpress.Xpo.DB.SortingDirection.Descending));
             return collection.ToList();
         });
@@ -101,7 +101,8 @@ public class PayRateService : IPayRateService
             var payRate = uow.GetObjectByKey<PayRate>(id);
             if (payRate != null)
             {
-                payRate.DeletedAt = DateTime.UtcNow;
+                // XPO's built-in soft delete - sets GCRecord automatically
+                payRate.Delete();
                 uow.CommitChanges();
             }
         });

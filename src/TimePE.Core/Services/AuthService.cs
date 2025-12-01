@@ -31,8 +31,9 @@ public class AuthService : IAuthService
         using var uow = new UnitOfWork();
         uow.ConnectionString = _connectionString;
         
+        // XPO automatically filters out soft-deleted records
         var user = await Task.Run(() => uow.Query<User>()
-            .FirstOrDefault(u => u.Username == username && u.IsActive && u.DeletedAt == null));
+            .FirstOrDefault(u => u.Username == username && u.IsActive));
         
         if (user == null)
             return null;
@@ -48,8 +49,9 @@ public class AuthService : IAuthService
         using var uow = new UnitOfWork();
         uow.ConnectionString = _connectionString;
         
+        // XPO automatically filters out soft-deleted records
         return await Task.Run(() => uow.Query<User>()
-            .FirstOrDefault(u => u.Username == username && u.DeletedAt == null));
+            .FirstOrDefault(u => u.Username == username));
     }
 
     public async Task<bool> CreateUserAsync(string username, string password)

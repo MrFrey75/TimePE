@@ -50,7 +50,8 @@ public class TimeEntryService : ITimeEntryService
         {
             using var uow = new UnitOfWork(XpoDefault.DataLayer);
             var project = uow.GetObjectByKey<Project>(projectId);
-            if (project == null || project.DeletedAt != null)
+            // XPO automatically handles soft-deleted records - GetObjectByKey returns null for deleted objects
+            if (project == null)
             {
                 throw new InvalidOperationException($"Project with ID {projectId} not found");
             }
@@ -109,7 +110,8 @@ public class TimeEntryService : ITimeEntryService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
-            var criteria = CriteriaOperator.Parse("Date >= ? And Date <= ? And DeletedAt Is Null", startDate, endDate);
+            // XPO automatically filters out soft-deleted records
+            var criteria = CriteriaOperator.Parse("Date >= ? And Date <= ?", startDate, endDate);
             var collection = new XPCollection<TimeEntry>(session, criteria);
             collection.Sorting.Add(new SortProperty("Date", DevExpress.Xpo.DB.SortingDirection.Ascending));
             collection.Sorting.Add(new SortProperty("StartTime", DevExpress.Xpo.DB.SortingDirection.Ascending));
@@ -122,7 +124,8 @@ public class TimeEntryService : ITimeEntryService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
-            var criteria = CriteriaOperator.Parse("Project.Oid = ? And DeletedAt Is Null", projectId);
+            // XPO automatically filters out soft-deleted records
+            var criteria = CriteriaOperator.Parse("Project.Oid = ?", projectId);
             var collection = new XPCollection<TimeEntry>(session, criteria);
             collection.Sorting.Add(new SortProperty("Date", DevExpress.Xpo.DB.SortingDirection.Ascending));
             collection.Sorting.Add(new SortProperty("StartTime", DevExpress.Xpo.DB.SortingDirection.Ascending));
@@ -156,7 +159,8 @@ public class TimeEntryService : ITimeEntryService
             var timeEntry = uow.GetObjectByKey<TimeEntry>(id);
             if (timeEntry != null)
             {
-                timeEntry.DeletedAt = DateTime.UtcNow;
+                // XPO's built-in soft delete - sets GCRecord automatically
+                timeEntry.Delete();
                 uow.CommitChanges();
             }
         });

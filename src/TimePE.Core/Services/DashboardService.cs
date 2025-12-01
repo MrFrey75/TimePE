@@ -35,17 +35,10 @@ public class DashboardService : IDashboardService
         {
             using var session = new Session(XpoDefault.DataLayer);
             
-            var timeEntries = new XPQuery<TimeEntry>(session)
-                .Where(te => te.DeletedAt == null)
-                .ToList();
-
-            var incidentals = new XPQuery<Incidental>(session)
-                .Where(i => i.DeletedAt == null)
-                .ToList();
-
-            var payments = new XPQuery<Payment>(session)
-                .Where(p => p.DeletedAt == null)
-                .ToList();
+            // XPO automatically filters out soft-deleted records
+            var timeEntries = new XPQuery<TimeEntry>(session).ToList();
+            var incidentals = new XPQuery<Incidental>(session).ToList();
+            var payments = new XPQuery<Payment>(session).ToList();
 
             var timeOwed = timeEntries.Sum(te => te.AmountOwed);
             var incidentalsOwed = incidentals.Where(i => i.Type == IncidentalType.Owed).Sum(i => i.Amount);
@@ -67,8 +60,8 @@ public class DashboardService : IDashboardService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
+            // XPO automatically filters out soft-deleted records
             return new XPQuery<TimeEntry>(session)
-                .Where(te => te.DeletedAt == null)
                 .OrderByDescending(te => te.Date)
                 .ThenByDescending(te => te.StartTime)
                 .Take(count)
@@ -81,8 +74,8 @@ public class DashboardService : IDashboardService
         return await Task.Run(() =>
         {
             using var session = new Session(XpoDefault.DataLayer);
-            var query = new XPQuery<TimeEntry>(session)
-                .Where(te => te.DeletedAt == null);
+            // XPO automatically filters out soft-deleted records
+            var query = new XPQuery<TimeEntry>(session);
 
             if (startDate.HasValue)
                 query = (XPQuery<TimeEntry>)query.Where(te => te.Date >= startDate.Value);
@@ -106,8 +99,9 @@ public class DashboardService : IDashboardService
             using var session = new Session(XpoDefault.DataLayer);
             var weekEnd = weekStart.AddDays(7);
 
+            // XPO automatically filters out soft-deleted records
             var timeEntries = new XPQuery<TimeEntry>(session)
-                .Where(te => te.Date >= weekStart && te.Date < weekEnd && te.DeletedAt == null)
+                .Where(te => te.Date >= weekStart && te.Date < weekEnd)
                 .ToList();
 
             return (decimal)timeEntries.Sum(te => te.Duration.TotalHours);

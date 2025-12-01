@@ -19,8 +19,9 @@ public class ProjectInitializer
         uow.ConnectionString = _connectionString;
 
         // Check if General project exists
+        // XPO automatically filters out soft-deleted records
         var generalProject = await Task.Run(() => uow.Query<Project>()
-            .FirstOrDefault(p => p.Name == "General" && p.DeletedAt == null));
+            .FirstOrDefault(p => p.Name == "General"));
 
         if (generalProject == null)
         {
