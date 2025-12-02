@@ -10,30 +10,30 @@ TimePE/
 ├── src/
 │   ├── TimePE.Core/              # Core business logic library
 │   │   ├── Models/               # XPO persistent domain models
-│   │   │   ├── BaseEntity.cs
+│   │   │   ├── BaseEntity.cs     # Base class with soft delete support
 │   │   │   ├── Project.cs
 │   │   │   ├── PayRate.cs
 │   │   │   ├── TimeEntry.cs
 │   │   │   ├── Incidental.cs
 │   │   │   ├── Payment.cs
 │   │   │   └── User.cs
+│   │   ├── DTOs/                 # Data Transfer Objects
+│   │   │   └── ProjectSummaryDto.cs
 │   │   ├── Services/             # Business logic services
 │   │   │   ├── ProjectService.cs
 │   │   │   ├── PayRateService.cs
 │   │   │   ├── TimeEntryService.cs
 │   │   │   ├── IncidentalService.cs
 │   │   │   ├── PaymentService.cs
-│   │   │   ├── DashboardService.cs
-│   │   │   └── AuthService.cs
+│   │   │   └── DashboardService.cs
 │   │   └── Database/
 │   │       ├── DatabaseContext.cs
 │   │       └── Migrations/
-│   │           ├── DatabaseMigrator.cs
-│   │           └── UserInitializer.cs
+│   │           └── DatabaseMigrator.cs
 │   │
 │   └── TimePE.WebApp/            # ASP.NET Core web application
 │       ├── Pages/                # Razor Pages
-│       │   ├── Account/          # Login/Logout pages
+│       │   ├── Account/          # Login/Logout/Profile pages
 │       │   ├── Projects/         # Project CRUD pages
 │       │   ├── PayRates/         # Pay rate management
 │       │   ├── TimeEntries/      # Time entry management
@@ -42,20 +42,47 @@ TimePE/
 │       │   ├── Reports/          # Report generation
 │       │   └── Shared/           # Layout and shared components
 │       ├── wwwroot/              # Static files
+│       │   ├── css/              
+│       │   │   └── site.css      # Mobile-responsive styles
+│       │   ├── js/
+│       │   │   └── site.js       # PWA and mobile enhancements
+│       │   ├── lib/              # Third-party libraries (Bootstrap, jQuery)
+│       │   ├── icons/            # PWA icons (13 sizes)
+│       │   ├── splash/           # iOS splash screens (10 sizes)
+│       │   ├── manifest.json     # PWA manifest
+│       │   ├── sw.js             # Service worker
+│       │   └── browserconfig.xml # Microsoft tiles config
+│       ├── Properties/
+│       │   └── launchSettings.json
 │       ├── appsettings.json
+│       ├── appsettings.Development.json
 │       └── Program.cs
 │
+├── docs/                         # Documentation
+│   ├── PWA_IMPLEMENTATION.md     # PWA architecture guide
+│   ├── MOBILE_PWA_TESTING.md     # Testing checklist
+│   ├── LOGGING.md                # Logging system documentation
+│   ├── SOFT_DELETE_IMPLEMENTATION.md # Soft delete guide
+│   ├── generate-icons.sh         # Bash icon generator (ImageMagick)
+│   ├── generate-icons.py         # Python icon generator (Pillow)
+│   └── archive/                  # Archived documentation
+│
 ├── TimePE.sln                    # Solution file
-├── READMD.md                     # Main documentation
+├── README.md                     # Main documentation
+├── PROJECT_STRUCTURE.md          # This file
 ├── CodeStandards.md              # Coding standards
 └── LICENSE                       # MIT License
 
 ## Technology Stack
 
 - **.NET 8** - Framework
+- **ASP.NET Core Razor Pages** - Web UI
 - **SQLite** - Database
-- **DevExpress XPO 24.1.6** - Object-Relational Mapping framework
-- **Serilog** - Structured logging
+- **DevExpress XPO 24.1.6** - Object-Relational Mapping framework with built-in soft delete
+- **Serilog** - Structured logging (file rotation, dual outputs)
+- **Bootstrap 5** - UI framework with custom dark theme
+- **Progressive Web App (PWA)** - Service Worker, Web App Manifest, offline support
+- **Cookie Authentication** - SHA256 password hashing, session management
 
 ## DevExpress XPO Architecture
 
@@ -73,10 +100,11 @@ All domain models inherit from `XPObject` through `BaseEntity`:
 
 ### Key Features Used
 - **Auto Schema Creation** - Database tables created automatically from models
-- **Soft Deletes** - XPO's built-in `IsDeleted` property
+- **Soft Deletes** - XPO's built-in `[DeferredDeletion(true)]` with GCRecord system
 - **LINQ Support** - Query data using `XPQuery<T>`
 - **Associations** - One-to-many relationships (e.g., Project → TimeEntries)
 - **Persistent Aliases** - Calculated properties (e.g., Duration, AmountOwed)
+- **View Models** - For delete operations to avoid ObjectDisposedException
 
 ## Database Schema
 
@@ -92,7 +120,7 @@ All tables include:
 - `OID` (Primary Key, auto-increment)
 - `CreatedAt` - Timestamp when record was created
 - `UpdatedAt` - Last modification timestamp
-- `IsDeleted` - Soft delete flag (built-in XPO feature)
+- `GCRecord` - Soft delete tracking (built-in XPO feature via `[DeferredDeletion(true)]`)
 - `OptimisticLockField` - Concurrency control (built-in XPO feature)
 
 ## Getting Started
@@ -136,58 +164,109 @@ uow.CommitChanges();
 ## Implemented Features
 
 ### ✅ Core Services
-- Project management (CRUD operations)
+- Project management (CRUD operations with soft delete)
 - Pay rate tracking with historical preservation
 - Time entry tracking with automatic pay rate application
 - Incidentals management (amounts owed/by)
 - Payment tracking
-- Dashboard with balance calculations and summaries
-- Authentication and user management
+- Dashboard with balance calculations and project summaries
+- CSV import/export for all entities with sample templates
 
 ### ✅ Web UI
 - Complete CRUD interfaces for all entities
-- Dashboard with balance display and recent activity
-- Time entry forms with project association
-- Project management pages
-- Pay rate management
-- Incidentals tracking
-- Payment records
-- Weekly/custom date range reporting
-- Login/logout functionality
-- Protected routes with cookie authentication
+- Dashboard with balance display, recent activity, and project summaries
+- Time entry forms with project association and validation
+- Project management pages with relationship tracking
+- Pay rate management with effective date handling
+- Incidentals tracking with type classification
+- Payment records with date tracking
+- Weekly/custom date range reporting with PDF-ready layouts
+- Responsive design optimized for mobile, tablet, and desktop
+- Touch-friendly controls (48x48px WCAG-compliant touch targets)
+- Dark theme with high contrast colors (#00d4ff on #0a0e17)
 
-### ✅ Security
-- Cookie-based authentication
-- Automatic default user creation on first run
-- Password hashing (SHA256)
-- Protected routes with [Authorize] attribute
+### ✅ Security & Authentication
+- Cookie-based authentication ("CookieAuth" scheme)
+- Automatic default user creation on first run (admin/admin123)
+- SHA256 password hashing with salt
+- Protected routes with authorization middleware
 - Session management (8 hours / 30 days with "Remember me")
+- User profile management (change username/password)
+- Secure logout with cookie clearing
 
-## Next Steps
+### ✅ Progressive Web App (PWA)
+- **Installable** - Can be installed as native-like app on desktop and mobile
+- **Offline Support** - Service worker with cache-first strategy
+- **App Icons** - 13 sizes (72x72 to 512x512) for all platforms
+- **Splash Screens** - 10 iOS launch screens for all device sizes
+- **Web App Manifest** - Full PWA configuration with shortcuts and share target
+- **Mobile Optimizations** - Touch feedback, haptic vibration, pull-to-refresh
+- **Network Detection** - Offline banner, auto-reconnect
+- **Form Auto-Save** - LocalStorage backup for unsaved changes
+- **Web Share API** - Share data to other apps on supported devices
 
-The following enhancements could be implemented:
+### ✅ Logging & Monitoring
+- **Serilog** structured logging with dual outputs
+- Console logging for development debugging
+- File logging with daily rotation (logs/timepe-YYYYMMDD.log)
+- Retention policies (30 days general, 90 days errors)
+- HTTP request/response logging with timing
+- Service operation logging (CRUD, authentication)
+- Application lifecycle events (startup, shutdown)
 
-1. **User Management**
-   - Password change functionality
-   - User profile editing
-   - Password strength requirements
-   - Password recovery mechanism
+### ✅ Data Management
+- **Soft Delete** - XPO's built-in `[DeferredDeletion(true)]` system
+- **Data Seeding** - Automatic creation of "General" project and default pay rate
+- **CSV Import** - Bulk data import with validation and error handling
+- **CSV Export** - Full data export with proper formatting
+- **Sample Templates** - Downloadable CSV templates for each entity
+- **Cascade Delete** - Related entities soft-deleted together (via XPO associations)
 
-2. **Enhanced Features**
-   - Data export (CSV, PDF)
-   - Email report generation
-   - Advanced filtering and search
-   - Bulk operations
+## Potential Future Enhancements
 
-3. **Testing**
+1. **Advanced Reporting**
+   - PDF generation for reports
+   - Email report delivery
+   - Custom report builder
+   - Data visualization (charts/graphs)
+   - Export to Excel format
+
+2. **Enhanced PWA Features**
+   - Background sync for offline time entries
+   - Push notifications for reminders
+   - IndexedDB for offline data storage
+   - Sync conflict resolution
+   - App Store deployment (TWA for Android, wrapper for iOS)
+
+3. **User Management**
+   - Password strength requirements and validation
+   - Password recovery mechanism (email-based)
+   - Two-factor authentication
+   - User roles and permissions (future multi-user support)
+
+4. **Performance & Scalability**
+   - Caching strategies (in-memory, distributed)
+   - Query optimization and profiling
+   - Pagination for large datasets
+   - Database indexing optimization
+   - CDN integration for static assets
+
+5. **Testing**
    - Unit tests for services
    - Integration tests for authentication
    - UI tests for critical workflows
+   - PWA functionality tests
+   - Mobile device testing automation
 
-4. **Performance**
-   - Caching strategies
-   - Query optimization
-   - Pagination for large datasets
+6. **Advanced Features**
+   - Time entry templates for recurring tasks
+   - Project budgeting and tracking
+   - Expense tracking integration
+   - Invoice generation
+   - Multiple time zones support
+   - Bulk operations and batch processing
+   - Advanced search and filtering
+   - Audit trail and history tracking
 
 ## XPO Best Practices
 
@@ -195,12 +274,17 @@ The following enhancements could be implemented:
 - Use Session for read-only operations
 - Use UnitOfWork for transactions
 - Query with `XPQuery<T>` for LINQ support
-- Let XPO manage the database schema with `AutoCreateOption`
-- Use built-in soft deletes via `.Delete()` method
+- Let XPO manage the database schema with `AutoCreateOption.DatabaseAndSchema`
+- Use built-in soft deletes via `[DeferredDeletion(true)]` and `.Delete()` method
 - Leverage associations for navigation properties
+- Load related data before session disposal to avoid `ObjectDisposedException`
+- Use view models for delete confirmations with lazy-loaded collections
+- XPO automatically filters out soft-deleted records via GCRecord
+- See `docs/SOFT_DELETE_IMPLEMENTATION.md` for detailed guidance
 
 ## Configuration
 
+### Database Connection
 Database connection string is in `appsettings.json`:
 ```json
 "ConnectionStrings": {
@@ -208,7 +292,32 @@ Database connection string is in `appsettings.json`:
 }
 ```
 
-Logs are written to console and `logs/timepe-{Date}.log` files.
+### Logging Configuration
+Serilog is configured in `Program.cs` with:
+- **Console Sink** - Development debugging with colored output
+- **File Sink** - Daily rotating logs in `logs/timepe-{Date}.log`
+- **Retention** - 30 days for general logs, 90 days for errors
+- **Format** - Structured JSON-style logging with timestamps
+
+### Authentication
+Cookie authentication settings:
+- **Scheme** - "CookieAuth"
+- **Login Path** - `/Account/Login`
+- **Logout Path** - `/Account/Logout`
+- **Session Duration** - 8 hours (standard), 30 days (persistent)
+
+### PWA Configuration
+PWA settings in `wwwroot/manifest.json`:
+- **Theme Color** - `#0a0e17` (dark blue-black)
+- **Background Color** - `#0a0e17`
+- **Display Mode** - `standalone` (full-screen app)
+- **Cache Strategy** - Cache-first with network fallback
+
+### Default Seeded Data
+On first run, the application automatically creates:
+- **User** - admin / admin123 (change password after first login)
+- **Project** - "General" project for miscellaneous work
+- **PayRate** - $20/hour default rate
 
 ## License
 
