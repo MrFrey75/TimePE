@@ -28,8 +28,7 @@ public class AuthService : IAuthService
 
     public async Task<User?> ValidateUserAsync(string username, string password)
     {
-        using var uow = new UnitOfWork();
-        uow.ConnectionString = _connectionString;
+        using var uow = new UnitOfWork(XpoDefault.DataLayer);
         
         // XPO automatically filters out soft-deleted records
         var user = await Task.Run(() => uow.Query<User>()
@@ -46,8 +45,7 @@ public class AuthService : IAuthService
 
     public async Task<User?> GetUserByUsernameAsync(string username)
     {
-        using var uow = new UnitOfWork();
-        uow.ConnectionString = _connectionString;
+        using var uow = new UnitOfWork(XpoDefault.DataLayer);
         
         // XPO automatically filters out soft-deleted records
         return await Task.Run(() => uow.Query<User>()
@@ -56,8 +54,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> CreateUserAsync(string username, string password)
     {
-        using var uow = new UnitOfWork();
-        uow.ConnectionString = _connectionString;
+        using var uow = new UnitOfWork(XpoDefault.DataLayer);
 
         var existingUser = await GetUserByUsernameAsync(username);
         if (existingUser != null)
@@ -77,8 +74,7 @@ public class AuthService : IAuthService
 
     public async Task UpdateLastLoginAsync(int userId)
     {
-        using var uow = new UnitOfWork();
-        uow.ConnectionString = _connectionString;
+        using var uow = new UnitOfWork(XpoDefault.DataLayer);
 
         var user = await uow.GetObjectByKeyAsync<User>(userId);
         if (user != null)
@@ -90,8 +86,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> UpdateUsernameAsync(int userId, string newUsername)
     {
-        using var uow = new UnitOfWork();
-        uow.ConnectionString = _connectionString;
+        using var uow = new UnitOfWork(XpoDefault.DataLayer);
 
         var user = await uow.GetObjectByKeyAsync<User>(userId);
         if (user == null)
@@ -113,8 +108,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> UpdatePasswordAsync(int userId, string newPassword)
     {
-        using var uow = new UnitOfWork();
-        uow.ConnectionString = _connectionString;
+        using var uow = new UnitOfWork(XpoDefault.DataLayer);
 
         var user = await uow.GetObjectByKeyAsync<User>(userId);
         if (user == null)
