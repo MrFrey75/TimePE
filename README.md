@@ -10,6 +10,7 @@ TimePE is a feature-rich, single-user time-tracking Progressive Web App built on
 - ✅ Modern Service Worker v2.0.0 with intelligent caching
 - ✅ Zero build warnings
 - ✅ Full PWA support with offline capabilities
+ - ✅ Dockerized runtime and compose added (v1.0)
 
 ## Key goals
 
@@ -39,9 +40,6 @@ TimePE is a feature-rich, single-user time-tracking Progressive Web App built on
 
 Top-level folders you'll see in this repo:
 
-- `src/TimePE.Core/` - Core domain models, services, and business logic using XPO.
-- `src/TimePE.WebApp/` - Web application (UI/API) that consumes the Core library.
-- `src/TimePE.Core/Database/` - Database initialization and XPO configuration.
 
 There are also project/solution files at the repository root (`TimePE.sln`)
 
@@ -49,8 +47,6 @@ There are also project/solution files at the repository root (`TimePE.sln`)
 
 Prerequisites:
 
-- **.NET 9 SDK** installed (`dotnet --version` should show 9.0.x)
-- Modern browser (Chrome, Edge, Safari, or Firefox)
 
 Build and run the entire solution from the repository root:
 
@@ -65,7 +61,49 @@ dotnet test
 dotnet run --project src/TimePE.WebApp/TimePE.WebApp.csproj
 ```
 
-The WebApp will start on **http://localhost:5176** (or https://localhost:7176 for HTTPS). Open in your browser.
+ - **[docs/QUICKSTART.md](docs/QUICKSTART.md)** - Quick start for dev and Docker
+
+## Deployment (Docker)
+
+Build and run using Docker:
+
+```bash
+# Build image (tag v1.0.0)
+docker build -t timepe/web:1.0.0 -f src/TimePE.WebApp/Dockerfile .
+
+# Run container (maps 5176 -> 8080)
+docker run -d --name timepe-web \
+  -p 5176:8080 \
+  -v timepe_data:/data \
+  -v timepe_logs:/logs \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  timepe/web:1.0.0
+
+# View logs
+docker logs -f timepe-web
+```
+
+Or use `docker-compose`:
+
+```bash
+# Build and start services (web + optional Seq)
+docker compose up -d --build
+
+# Stop services
+docker compose down
+```
+
+Notes:
+- Default HTTP port is `5176` (host) mapped to `8080` (container).
+- Persistent volumes: `timepe_data` for SQLite DB, `timepe_logs` for logs.
+- To enable Seq, visit `http://localhost:5341` after `docker compose up`.
+ - Health endpoint: `GET /health` (used by Docker/K8s readiness probes)
+
+### Environment Variables
+- `ASPNETCORE_ENVIRONMENT`: `Development` or `Production` (default in compose is `Production`).
+- `ConnectionStrings__DefaultConnection`: override SQLite path (e.g., `XpoProvider=SQLite;Data Source=/data/timepe.db`).
+- `Serilog:WriteTo:Seq:Args:serverUrl`: set Seq URL (e.g., `http://localhost:5341`).
+- `Serilog:WriteTo:ApplicationInsights:Args:connectionString`: set AI connection string.
 
 ### Testing PWA Features
 
@@ -165,7 +203,7 @@ Coding conventions:
   - ✅ **Touch-friendly** controls (48x48px WCAG compliant)
   - ✅ **Dark theme** optimized for OLED
 
-### Planned
+### Planned (post v1.0)
 - Enhanced reporting features with more filters
 - Advanced dashboard analytics
 - Time entry templates

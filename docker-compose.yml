@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: src/TimePE.WebApp/Dockerfile
+    image: timepe/web:1.0.0
+    container_name: timepe-web
+    ports:
+      - "5176:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      # Configure SQLite path override to persist database in container volume
+      ConnectionStrings__DefaultConnection: "XpoProvider=SQLite;Data Source=/data/timepe.db"
+    volumes:
+      - timepe_data:/data
+      - timepe_logs:/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Optional: Seq for centralized logging
+  seq:
+    image: datalust/seq:2024.4
+    container_name: seq
+    ports:
+      - "5341:5341"
+    environment:
+      ACCEPT_EULA: "Y"
+    volumes:
+      - seq_data:/data
+    restart: unless-stopped
+
+volumes:
+  timepe_data:
+  timepe_logs:
+  seq_data:
