@@ -174,8 +174,7 @@ try
      // Health check endpoint for Docker/K8s readiness
      app.MapGet("/health", () => Results.Json(new { status = "ok", time = DateTimeOffset.UtcNow }))
          .WithName("HealthCheck")
-         .WithTags("System")
-         .WithOpenApi();
+         .WithTags("System");
 
     // Startup logging
     Log.Information("TimePE application configured successfully");
