@@ -48,8 +48,6 @@ This document outlines the steps and best practices for migrating the TimePE app
 	- Add integration tests for API endpoints using in-memory test server (e.g., `WebApplicationFactory`).
 - **Mocking:**
 	- Use mocking frameworks (e.g., Moq) for dependencies.
-- **Continuous Integration:**
-	- Integrate tests into CI pipeline for automated validation.
 
 ---
 
