@@ -5,6 +5,7 @@
     <LangVersion>13.0</LangVersion>  <!-- Enable C# 13 features -->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);DX1001</NoWarn>  <!-- Suppress DevExpress evaluation warning -->
   </PropertyGroup>
 
   <ItemGroup>

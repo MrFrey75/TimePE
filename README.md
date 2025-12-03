@@ -1,8 +1,15 @@
 # TimePE
 
-TimePE is a small, single-user time-tracking application built on .NET 8 and SQLite using DevExpress XPO. It captures daily work sessions (date, start time, end time), associates time with projects, and preserves historical pay-rate information. The design favors immutability of historic records (soft deletes via XPO and explicit audit fields) so past data remains reliable for reporting and payroll.
+**Professional Time Tracking & Project Management**
 
-This README provides a concise overview, quick setup steps, architecture notes, and a development roadmap to help contributors and maintainers get started.
+TimePE is a feature-rich, single-user time-tracking Progressive Web App built on **.NET 9** and **SQLite** using **DevExpress XPO**. It captures daily work sessions (date, start time, end time), associates time with projects, and preserves historical pay-rate information. The design favors immutability of historic records (soft deletes via XPO's built-in system) so past data remains reliable for reporting and payroll.
+
+**Latest Updates (December 2, 2025):**
+- ✅ Migrated to .NET 9 with C# 13
+- ✅ Comprehensive test suite: **142 tests passing**
+- ✅ Modern Service Worker v2.0.0 with intelligent caching
+- ✅ Zero build warnings
+- ✅ Full PWA support with offline capabilities
 
 ## Key goals
 
@@ -17,12 +24,16 @@ This README provides a concise overview, quick setup steps, architecture notes, 
 
 ## Tech stack
 
-- .NET 8 (C#)
-- SQLite (local file database, simple single-user deployment)
-- DevExpress XPO (Object-Relational Mapping with built-in soft delete support)
-- Dependency Injection using built-in Microsoft DI
-- Serilog for structured logging
-- PWA (Service Worker, Web App Manifest, offline support)
+- **.NET 9** with **C# 13** (latest features)
+- **SQLite** (local file database, simple single-user deployment)
+- **DevExpress XPO 25.1.7** (Object-Relational Mapping with built-in soft delete support)
+- **Dependency Injection** with keyed services (.NET 9 feature)
+- **Serilog 4.3.0** for structured logging with async/await
+- **xUnit 2.9.2** testing framework with **142 passing tests**
+- **FluentAssertions 6.12.2** for readable test assertions
+- **Progressive Web App** (Service Worker v2.0.0, multi-strategy caching, offline support)
+- **HybridCache** (.NET 9 distributed caching)
+- **Bootstrap 5** with custom dark theme
 
 ## Repository layout
 
@@ -38,17 +49,23 @@ There are also project/solution files at the repository root (`TimePE.sln`)
 
 Prerequisites:
 
-- .NET 8 SDK installed (dotnet --version should show a 8.x SDK)
-- Optional: a browser for the WebApp frontend
+- **.NET 9 SDK** installed (`dotnet --version` should show 9.0.x)
+- Modern browser (Chrome, Edge, Safari, or Firefox)
 
 Build and run the entire solution from the repository root:
 
 ```bash
+# Build solution (0 warnings)
 dotnet build
+
+# Run tests (142 passing)
+dotnet test
+
+# Run application
 dotnet run --project src/TimePE.WebApp/TimePE.WebApp.csproj
 ```
 
-If the WebApp is an ASP.NET project it will print the local URL (usually http://localhost:5176). Open that in your browser.
+The WebApp will start on **http://localhost:5176** (or https://localhost:7176 for HTTPS). Open in your browser.
 
 ### Testing PWA Features
 
@@ -112,18 +129,41 @@ Coding conventions:
 
 ## Roadmap / Next steps
 
-### Completed
-- ✅ Cookie-based authentication system
-- ✅ User login/logout functionality
-- ✅ Automatic default user creation
-- ✅ Protected routes with authorization
-- ✅ User profile management (change username/password)
-- ✅ CSV import/export functionality
-- ✅ Automatic data seeding (General project, default pay rate)
-- ✅ Comprehensive Serilog logging system
-- ✅ Soft delete implementation using XPO's built-in system
-- ✅ Mobile-responsive design with touch-friendly controls
-- ✅ Progressive Web App (PWA) support with offline capabilities
+### Completed ✅
+- **Core Features:**
+  - Complete CRUD operations for all entities
+  - Time tracking with project association
+  - Pay rate management with historical preservation
+  - Incidentals and payment tracking
+  - Balance calculations and dashboard
+  - CSV import/export with templates
+  - Weekly/custom range reporting
+
+- **Security & Authentication:**
+  - Cookie-based authentication with session management
+  - SHA256 password hashing
+  - Protected routes with authorization
+  - User profile management
+  - Automatic default user creation
+
+- **Technical Excellence:**
+  - ✅ **.NET 9 with C# 13** (modern features)
+  - ✅ **142 comprehensive tests** (xUnit + FluentAssertions)
+  - ✅ **Zero build warnings**
+  - ✅ **DevExpress XPO 25.1.7** with built-in soft deletes
+  - ✅ **Serilog** structured logging
+  - ✅ **HybridCache** for performance
+  - ✅ **Keyed DI** services (.NET 9)
+
+- **Progressive Web App:**
+  - ✅ **Service Worker v2.0.0** with intelligent caching
+  - ✅ **Multi-strategy caching** (static, dynamic, images)
+  - ✅ **Offline support** with cache limits
+  - ✅ **Installable** on desktop and mobile
+  - ✅ **13 icon sizes** + 10 iOS splash screens
+  - ✅ **Mobile-responsive** design
+  - ✅ **Touch-friendly** controls (48x48px WCAG compliant)
+  - ✅ **Dark theme** optimized for OLED
 
 ### Planned
 - Enhanced reporting features with more filters
@@ -134,16 +174,51 @@ Coding conventions:
 
 ## Where to look in the code
 
-- `src/TimePE.Core/Models` - XPO persistent classes for time entries, projects, pay rates, incidentals, and users.
-- `src/TimePE.Core/Services` - business logic: creating time entries, applying pay rates, computing balances, soft-delete handling, authentication.
-- `src/TimePE.Core/Database` - XPO data layer initialization, schema setup, and user initialization.
-- `src/TimePE.WebApp/Pages/Account` - Login and logout pages.
-- `src/TimePE.WebApp/` - UI/API project, authentication configuration, and appsettings for connection strings.
+- **`src/TimePE.Core/Models/`** - XPO persistent classes (7 models)
+- **`src/TimePE.Core/Services/`** - Business logic services (8 services)
+- **`src/TimePE.Core.Tests/Services/`** - Comprehensive test suite (142 tests)
+- **`src/TimePE.Core/Database/`** - XPO initialization and migrations
+- **`src/TimePE.WebApp/Pages/`** - Razor Pages UI (50+ pages)
+- **`src/TimePE.WebApp/wwwroot/`** - Static assets, PWA files, service worker
+- **`src/TimePE.WebApp/Program.cs`** - .NET 9 application configuration
+- **`docs/`** - Comprehensive documentation
+
+## Documentation
+
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Complete architecture guide
+- **[CodeStandards.md](CodeStandards.md)** - Coding conventions
+- **[docs/NET9_CSHARP13_FEATURES.md](docs/NET9_CSHARP13_FEATURES.md)** - Modern features used
+- **[docs/PWA_IMPLEMENTATION.md](docs/PWA_IMPLEMENTATION.md)** - PWA architecture
+- **[docs/LOGGING.md](docs/LOGGING.md)** - Logging system
+
+### Enabling Centralized Logging (Optional)
+- **Seq:** Install Seq and set `serverUrl` in `src/TimePE.WebApp/appsettings.json` under `Serilog:WriteTo:Seq`.
+- **Application Insights:** Replace `Serilog:WriteTo:ApplicationInsights:Args:connectionString` with your AI connection string.
+- See `docs/LOGGING.md` for full configuration examples.
+- **[docs/SOFT_DELETE_IMPLEMENTATION.md](docs/SOFT_DELETE_IMPLEMENTATION.md)** - Soft delete guide
+- **[src/TimePE.Core.Tests/README.md](src/TimePE.Core.Tests/README.md)** - Testing guide
 
 ## Support / Questions
 
 If you need help, open an issue with a reproducible description of the problem and steps to reproduce. For small code questions, include the file/class and line numbers where the issue appears.
 
+## Troubleshooting
+
+- **Ports:** Default HTTP `http://localhost:5176`, HTTPS `https://localhost:7176`. If different, check `Properties/launchSettings.json`.
+- **Service Worker cache:** If UI seems stale, open DevTools → Application → Clear storage → Unregister service worker, then hard-reload.
+- **SQLite path:** Check `src/TimePE.WebApp/appsettings.Development.json` for `ConnectionStrings`. Ensure the directory is writable.
+- **Clean build:**
+  ```bash
+  dotnet clean
+  dotnet restore
+  dotnet build
+  ```
+- **Run tests with details:**
+  ```bash
+  dotnet test --verbosity normal
+  ```
+- **Reset PWA state:** Delete site data in browser settings for `localhost` and reload.
+
 ## License
 
-Add a LICENSE file to this repository (MIT is recommended for small personal projects). If you already have a preferred license, include it at the repo root.
+This project is licensed under the terms in `LICENSE` at the repository root.

@@ -1,4 +1,9 @@
 # Mobile & PWA Testing Checklist
+**Last Updated:** December 2, 2025  
+**Service Worker:** v2.0.0 (Modern ES2024+ with intelligent caching)
+
+---
+
 
 ## Pre-Testing Setup
 - [ ] Application running on http://localhost:5176

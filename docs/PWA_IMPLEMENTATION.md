@@ -27,20 +27,58 @@ TimePE is a fully-featured Progressive Web App that can be installed on desktop 
 - **Push Notifications**: Infrastructure ready for reminders/alerts
 
 ### 3. Service Worker (`/sw.js`)
-**Cache Strategy:** Cache-first with network fallback
-- Caches static assets (CSS, JS, fonts, icons)
-- Serves from cache immediately for speed
-- Falls back to network if not cached
-- Updates cache in background
+**Modern ES2024+ Implementation**
 
-**Lifecycle:**
-1. **Install**: Pre-caches essential assets
-2. **Activate**: Cleans up old caches
-3. **Fetch**: Intercepts requests, serves from cache
+**Version:** 2.0.0
 
-**Prepared Features:**
-- Background sync for offline time entries
-- Push notification handlers
+**Cache Strategy:** Intelligent multi-strategy caching
+- **Static Assets (CSS, JS, Fonts):** Cache-first strategy for maximum performance
+- **Images:** Separate image cache with size limits
+- **HTML Pages:** Network-first with cache fallback for fresh content
+- **API Calls:** Network-first strategy (when implemented)
+
+**Cache Management:**
+- **Static Cache:** Core application files
+- **Dynamic Cache:** HTML pages and API responses (max 50 items)
+- **Image Cache:** Cached images (max 30 items)
+- **Auto-cleanup:** Old caches deleted on activation
+- **Size Limits:** Prevents unlimited cache growth
+
+**Modern Features:**
+- **Async/await:** Clean, readable asynchronous code throughout
+- **Intelligent Routing:** Different strategies per content type
+- **Cache Limiting:** Automatic pruning of old cached items
+- **Error Handling:** Comprehensive try/catch blocks with logging
+- **Message API:** Two-way communication with web app
+- **Periodic Sync:** Background data refresh (when supported)
+
+**Lifecycle Events:**
+1. **Install:** Pre-caches static assets with async/await
+2. **Activate:** Cleans up old cache versions intelligently
+3. **Fetch:** Routes requests to appropriate caching strategy
+4. **Sync:** Background synchronization support
+5. **Push:** Enhanced push notification handling
+6. **Message:** Communication channel with client pages
+7. **Periodic Sync:** Automatic cache refresh
+
+**Advanced Features:**
+- **Background Sync:** Queues offline actions for later sync
+- **Push Notifications:** Rich notifications with actions
+- **Smart Window Management:** Focus existing tabs vs. opening new
+- **Version Management:** Query and manage cache versions
+- **Manual Cache Control:** Clear cache on demand via messages
+
+**Communication API:**
+```javascript
+// Get service worker version
+navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+
+// Force service worker update
+navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+
+// Clear all caches
+navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+```
 
 ### 4. Web App Manifest (`/manifest.json`)
 **Identity:**
@@ -258,15 +296,22 @@ Currently using placeholder paths. Replace with actual branded icons:
 - **Images:** Cache-first with size limits
 
 ### Bundle Sizes
-- Service Worker: ~2KB
+- Service Worker: ~6KB (modern implementation)
 - site.js enhancements: ~10KB
 - Manifest: ~1KB
-- Total PWA overhead: ~13KB
+- Total PWA overhead: ~17KB
 
 ### Load Times
 - First Load: Standard HTTP load
-- Subsequent Loads: Instant (cache)
-- Offline: Instant (cache only)
+- Subsequent Loads: Instant (from cache)
+- Offline: Instant (cache-only mode)
+- Cache Strategy: Smart routing per content type
+
+### Caching Efficiency
+- **Static Assets:** Cached indefinitely, cache-first
+- **Dynamic Content:** Max 50 items, network-first
+- **Images:** Max 30 items, cache-first
+- **Auto-cleanup:** Prevents cache bloat
 
 ## Security Considerations
 
@@ -284,28 +329,43 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; 
 ### Cache Invalidation
 Update service worker version when deploying:
 ```javascript
-const CACHE_VERSION = 'timepe-v2'; // Increment on changes
+const CACHE_VERSION = '2.0.0'; // Update this on changes
+const CACHE_NAME = `timepe-v${CACHE_VERSION}`;
+const STATIC_CACHE = `${CACHE_NAME}-static`;
+const DYNAMIC_CACHE = `${CACHE_NAME}-dynamic`;
+const IMAGE_CACHE = `${CACHE_NAME}-images`;
 ```
+
+**Best Practices:**
+- Increment version on any service worker changes
+- Use semantic versioning (MAJOR.MINOR.PATCH)
+- Old caches automatically cleaned on activation
+- Clients get new version on next page load
 
 ## Future Enhancements
 
-### Phase 1 (Ready to Implement)
+### Phase 1 (Implemented ✅)
+- [x] Modern ES2024+ service worker with async/await
+- [x] Intelligent multi-strategy caching
+- [x] Cache size limiting and auto-cleanup
+- [x] Message API for version management
+- [x] Enhanced push notifications with actions
+- [x] Background sync infrastructure
+- [x] Periodic sync support
+
+### Phase 2 (Ready to Implement)
 - [ ] Create branded icons (all sizes)
 - [ ] Generate iOS splash screens
-- [ ] Implement background sync for offline time entries
-- [ ] Add push notifications for reminders
+- [ ] Implement IndexedDB for offline data storage
+- [ ] Complete background sync for time entries
+- [ ] Add push notification subscription UI
 
-### Phase 2 (Future)
-- [ ] IndexedDB for offline data storage
+### Phase 3 (Future)
 - [ ] Sync conflict resolution
 - [ ] App shortcuts for common actions
-- [ ] Advanced caching strategies per route
-
-### Phase 3 (Advanced)
 - [ ] Web Share Target (receive from other apps)
 - [ ] Badging API for notification count
-- [ ] Periodic background sync
-- [ ] Media session API for audio (if applicable)
+- [ ] Contact Picker API integration
 
 ## Troubleshooting
 
@@ -356,8 +416,23 @@ dotnet run --urls=https://0.0.0.0:5176
 ### Debugging Service Worker
 ```javascript
 // In DevTools Console
-navigator.serviceWorker.getRegistrations().then(regs => {
-  regs.forEach(reg => console.log(reg));
+
+// Check registration status
+navigator.serviceWorker.getRegistration().then(reg => {
+  console.log('Registration:', reg);
+  console.log('Active:', reg.active);
+  console.log('Installing:', reg.installing);
+  console.log('Waiting:', reg.waiting);
+});
+
+// Get service worker version
+navigator.serviceWorker.controller?.postMessage({ type: 'GET_VERSION' });
+
+// Listen for version response
+navigator.serviceWorker.addEventListener('message', event => {
+  if (event.data.version) {
+    console.log('Service Worker Version:', event.data.version);
+  }
 });
 
 // Force update
@@ -365,9 +440,30 @@ navigator.serviceWorker.getRegistration().then(reg => {
   reg.update();
 });
 
+// Skip waiting (activate new SW immediately)
+navigator.serviceWorker.controller?.postMessage({ type: 'SKIP_WAITING' });
+
+// Clear all caches
+navigator.serviceWorker.controller?.postMessage({ type: 'CLEAR_CACHE' });
+
 // Unregister for fresh start
 navigator.serviceWorker.getRegistration().then(reg => {
-  reg.unregister();
+  reg.unregister().then(() => {
+    console.log('Service worker unregistered');
+    location.reload();
+  });
+});
+
+// Check all caches
+caches.keys().then(keys => {
+  console.log('Cache names:', keys);
+  keys.forEach(key => {
+    caches.open(key).then(cache => {
+      cache.keys().then(requests => {
+        console.log(`${key} has ${requests.length} items`);
+      });
+    });
+  });
 });
 ```
 
@@ -381,26 +477,37 @@ navigator.serviceWorker.getRegistration().then(reg => {
 ### Pre-Deployment Checklist
 - [ ] Generate all icon sizes
 - [ ] Create iOS splash screens
-- [ ] Update service worker version
+- [x] Update service worker version (v2.0.0)
+- [x] Test cache strategies (static, dynamic, image)
 - [ ] Test on multiple devices/browsers
 - [ ] Verify HTTPS certificate
 - [ ] Check manifest.json validity
-- [ ] Test offline functionality
+- [x] Test offline functionality with cache limits
 - [ ] Verify install prompts work
+- [x] Test message API communication
+- [x] Verify cache cleanup on activation
 
 ### Deployment Steps
 1. Build production assets
-2. Update `CACHE_VERSION` in sw.js
+2. Update `CACHE_VERSION` in sw.js (current: 2.0.0)
 3. Deploy to HTTPS server
 4. Test PWA features in production
 5. Monitor service worker errors
+6. Verify cache strategies working correctly
+7. Check DevTools → Application → Service Workers
 
 ### Monitoring
 ```javascript
-// Add to service worker for error tracking
+// Add to service worker for error tracking (already implemented)
 self.addEventListener('error', (e) => {
-  console.error('SW error:', e);
-  // Send to logging service
+  console.error('[Service Worker] Error:', e);
+  // Send to logging service in production
+});
+
+// Monitor cache sizes
+self.addEventListener('activate', async (event) => {
+  const caches = await caches.keys();
+  console.log('[Service Worker] Active caches:', caches);
 });
 ```
 

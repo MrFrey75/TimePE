@@ -1,24 +1,76 @@
 ﻿// TimePE - Progressive Web App & Mobile Enhancements
 
 // ============================================
-// PWA Service Worker Registration
+// PWA Service Worker Registration (Modern)
 // ============================================
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('✅ Service Worker registered:', registration.scope);
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('✅ Service Worker registered:', registration.scope);
+      
+      // Get service worker version
+      if (navigator.serviceWorker.controller) {
+        const messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = (event) => {
+          console.log('📦 Service Worker version:', event.data.version);
+        };
+        navigator.serviceWorker.controller.postMessage(
+          { type: 'GET_VERSION' },
+          [messageChannel.port2]
+        );
+      }
+      
+      // Listen for service worker updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        console.log('🔄 Service Worker update found');
         
-        // Check for updates periodically
-        setInterval(() => {
-          registration.update();
-        }, 60000); // Check every minute
-      })
-      .catch(err => {
-        console.error('❌ Service Worker registration failed:', err);
+        newWorker?.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New service worker available
+            showUpdateNotification();
+          }
+        });
       });
+      
+      // Check for updates periodically
+      setInterval(() => {
+        registration.update();
+      }, 60000); // Check every minute
+      
+    } catch (err) {
+      console.error('❌ Service Worker registration failed:', err);
+    }
+  });
+  
+  // Handle controller change (new SW activated)
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('🔄 Service Worker updated, reloading page...');
+    window.location.reload();
   });
 }
+
+// Show update notification when new SW is available
+function showUpdateNotification() {
+  const updateBanner = document.createElement('div');
+  updateBanner.className = 'alert alert-info alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+  updateBanner.style.zIndex = '9999';
+  updateBanner.innerHTML = `
+    <strong>Update Available!</strong> A new version is ready.
+    <button type="button" class="btn btn-sm btn-primary ms-2" onclick="updateServiceWorker()">Update Now</button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  document.body.appendChild(updateBanner);
+}
+
+// Update service worker and reload
+window.updateServiceWorker = async () => {
+  const registration = await navigator.serviceWorker.getRegistration();
+  if (registration?.waiting) {
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+  }
+};
 
 // ============================================
 // PWA Install Prompt

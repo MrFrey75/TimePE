@@ -1,7 +1,14 @@
 # TimePE Project Structure
 
 ## Overview
-TimePE is a .NET 8 time-tracking application with SQLite database backend using DevExpress XPO for data access.
+TimePE is a **.NET 9** time-tracking Progressive Web App with **SQLite** database backend using **DevExpress XPO 25.1.7** for data access.
+
+**Current Status (December 2, 2025):**
+- ✅ .NET 9 with C# 13
+- ✅ 142 comprehensive tests passing
+- ✅ Zero build warnings
+- ✅ Service Worker v2.0.0
+- ✅ Full PWA implementation
 
 ## Solution Structure
 
@@ -75,14 +82,19 @@ TimePE/
 
 ## Technology Stack
 
-- **.NET 8** - Framework
+- **.NET 9** - Latest framework with C# 13
 - **ASP.NET Core Razor Pages** - Web UI
-- **SQLite** - Database
-- **DevExpress XPO 24.1.6** - Object-Relational Mapping framework with built-in soft delete
-- **Serilog** - Structured logging (file rotation, dual outputs)
+- **SQLite** - Embedded database
+- **DevExpress XPO 25.1.7** - ORM with built-in soft delete
+- **Serilog 4.3.0** - Structured logging (async, file rotation)
+- **xUnit 2.9.2** - Testing framework
+- **FluentAssertions 6.12.2** - Readable test assertions
+- **Moq 4.20.72** - Mocking framework
 - **Bootstrap 5** - UI framework with custom dark theme
-- **Progressive Web App (PWA)** - Service Worker, Web App Manifest, offline support
-- **Cookie Authentication** - SHA256 password hashing, session management
+- **Progressive Web App** - Service Worker v2.0.0, offline support
+- **Cookie Authentication** - Session management with keyed DI
+- **HybridCache** - .NET 9 distributed caching
+- **Microsoft.Extensions.Caching.Hybrid 9.3.0** - Advanced caching
 
 ## DevExpress XPO Architecture
 
@@ -171,17 +183,18 @@ uow.CommitChanges();
 - Payment tracking
 - Dashboard with balance calculations and project summaries
 - CSV import/export for all entities with sample templates
+- **142 comprehensive unit tests** (100% service coverage)
 
 ### ✅ Web UI
 - Complete CRUD interfaces for all entities
-- Dashboard with balance display, recent activity, and project summaries
+- Dashboard with balance display, recent activity, project summaries
 - Time entry forms with project association and validation
 - Project management pages with relationship tracking
 - Pay rate management with effective date handling
 - Incidentals tracking with type classification
 - Payment records with date tracking
 - Weekly/custom date range reporting with PDF-ready layouts
-- Responsive design optimized for mobile, tablet, and desktop
+- Responsive design optimized for mobile, tablet, desktop
 - Touch-friendly controls (48x48px WCAG-compliant touch targets)
 - Dark theme with high contrast colors (#00d4ff on #0a0e17)
 
@@ -193,34 +206,59 @@ uow.CommitChanges();
 - Session management (8 hours / 30 days with "Remember me")
 - User profile management (change username/password)
 - Secure logout with cookie clearing
+- **Keyed DI** for connection string (.NET 9 feature)
 
 ### ✅ Progressive Web App (PWA)
-- **Installable** - Can be installed as native-like app on desktop and mobile
-- **Offline Support** - Service worker with cache-first strategy
-- **App Icons** - 13 sizes (72x72 to 512x512) for all platforms
-- **Splash Screens** - 10 iOS launch screens for all device sizes
-- **Web App Manifest** - Full PWA configuration with shortcuts and share target
-- **Mobile Optimizations** - Touch feedback, haptic vibration, pull-to-refresh
+- **Installable** - Native-like app on desktop and mobile
+- **Service Worker v2.0.0** - Modern ES2024+ with async/await
+- **Multi-strategy caching:**
+  - Static cache (CSS, JS, fonts) - cache-first
+  - Dynamic cache (HTML, API) - network-first, max 50 items
+  - Image cache - cache-first, max 30 items
+- **Offline Support** - Works without internet
+- **App Icons** - 13 sizes (72x72 to 512x512)
+- **Splash Screens** - 10 iOS launch screens
+- **Web App Manifest** - Full PWA configuration
+- **Mobile Optimizations** - Touch feedback, haptics, pull-to-refresh
 - **Network Detection** - Offline banner, auto-reconnect
-- **Form Auto-Save** - LocalStorage backup for unsaved changes
-- **Web Share API** - Share data to other apps on supported devices
+- **Form Auto-Save** - LocalStorage backup
+- **Web Share API** - Share to other apps
+- **Message API** - Version management, cache control
 
 ### ✅ Logging & Monitoring
 - **Serilog** structured logging with dual outputs
-- Console logging for development debugging
+- Console logging for development
 - File logging with daily rotation (logs/timepe-YYYYMMDD.log)
 - Retention policies (30 days general, 90 days errors)
 - HTTP request/response logging with timing
 - Service operation logging (CRUD, authentication)
 - Application lifecycle events (startup, shutdown)
+- Async/await logging (.NET 9 optimized)
 
 ### ✅ Data Management
 - **Soft Delete** - XPO's built-in `[DeferredDeletion(true)]` system
-- **Data Seeding** - Automatic creation of "General" project and default pay rate
-- **CSV Import** - Bulk data import with validation and error handling
-- **CSV Export** - Full data export with proper formatting
-- **Sample Templates** - Downloadable CSV templates for each entity
-- **Cascade Delete** - Related entities soft-deleted together (via XPO associations)
+- **Data Seeding** - Automatic "General" project and default pay rate
+- **CSV Import** - Bulk import with validation
+- **CSV Export** - Full data export with formatting
+- **Sample Templates** - Downloadable CSV templates
+- **Cascade Delete** - Related entities soft-deleted together
+
+### ✅ Testing Infrastructure
+- **xUnit 2.9.2** - Modern testing framework
+- **FluentAssertions 6.12.2** - Readable assertions
+- **Moq 4.20.72** - Service mocking
+- **142 tests passing** - Comprehensive coverage:
+  - ProjectService: 6 tests
+  - AuthService: 18 tests
+  - CsvService: 15 tests
+  - IncidentalService: 18 tests
+  - PayRateService: 18 tests
+  - PaymentService: 18 tests
+  - TimeEntryService: 21 tests
+  - DashboardService: 28 tests
+- **Serial execution** - Prevents XPO threading issues
+- **Test isolation** - Unique GUIDs for InMemoryDataStore
+- **Zero warnings** - Clean builds
 
 ## Potential Future Enhancements
 

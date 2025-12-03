@@ -32,23 +32,14 @@ dotnet test
 ```
 TimePE.Core.Tests/
 ├── Services/
-│   ├── ProjectServiceTests.cs       # ✅ 6 passing tests
-│   ├── AuthServiceTests.cs          # ✅ 18 passing tests
-│   ├── CsvServiceTests.cs           # ✅ 15 passing tests
-│   ├── IncidentalServiceTests.cs    # ✅ 18 passing tests
-│   ├── PayRateServiceTests.cs       # ✅ 18 passing tests
-│   ├── PaymentServiceTests.cs       # ✅ 18 passing tests
-│   ├── TimeEntryServiceTests.cs     # (Setup complete, needs tests)
-│   ├── DashboardServiceTests.cs     # (TODO) Dashboard tests
-│   └── ...
-├── Models/
-│   ├── TimeEntryTests.cs            # (TODO) TimeEntry model logic
-│   ├── ProjectTests.cs              # (TODO) Project model tests
-│   ├── IncidentalTests.cs           # (TODO) model tests
-│   ├── PaymentTests.cs              # (TODO) model tests
-│   ├── PayRateTests.cs              # (TODO) model tests
-│   ├── TimeEntryTests.cs              # (TODO) model tests
-│   ├── UserTests.cs              # (TODO) model tests
+│   ├── ProjectServiceTests.cs       # ✅ 6 tests
+│   ├── AuthServiceTests.cs          # ✅ 18 tests
+│   ├── CsvServiceTests.cs           # ✅ 15 tests
+│   ├── IncidentalServiceTests.cs    # ✅ 18 tests
+│   ├── PayRateServiceTests.cs       # ✅ 18 tests
+│   ├── PaymentServiceTests.cs       # ✅ 18 tests
+│   ├── TimeEntryServiceTests.cs     # ✅ 21 tests
+│   ├── DashboardServiceTests.cs     # ✅ 28 tests
 │   └── ...
 ├── xunit.runner.json                # Test execution configuration
 └── README.md
@@ -236,24 +227,21 @@ dotnet test /p:CollectCoverage=true
 
 ## Future Test Coverage
 
-### Status
+### Current Status (December 2, 2025)
 - ✅ **ProjectService** - 6 tests passing
 - ✅ **AuthService** - 18 tests passing
 - ✅ **CsvService** - 15 tests passing
 - ✅ **IncidentalService** - 18 tests passing
 - ✅ **PayRateService** - 18 tests passing
 - ✅ **PaymentService** - 18 tests passing
-- 🔄 **TimeEntryService** - Setup complete, needs test implementation
-- 📋 **Total**: **93 tests passing**
+- ✅ **TimeEntryService** - 21 tests passing
+- ✅ **DashboardService** - 28 tests passing
+- 📋 **Total**: **142 tests passing** ✅
 
-### Priority
-- [ ] TimeEntryService tests (framework in place)
-- [ ] DashboardService tests
-
-### Additional
+### Future Priority
+- [ ] Model tests (validation, calculated properties)
 - [ ] Integration tests with real SQLite database
 - [ ] Performance tests for large datasets
-- [ ] Model validation tests
 
 ## Continuous Integration
 
@@ -280,6 +268,8 @@ Consider adding to CI/CD pipeline:
 
 ---
 
-**Last Updated:** December 2, 2025  
-**Test Coverage:** ProjectService (6/6 tests passing)  
-**Status:** ✅ Test project configured and working with .NET 9 & C# 13
+**Last Updated:** December 2, 2025
+**Framework:** .NET 9 with C# 13
+**Test Count:** 142 tests passing (0 errors, 0 warnings)
+**Coverage:** All services (ProjectService, AuthService, CsvService, IncidentalService, PayRateService, PaymentService, TimeEntryService, DashboardService)
+**Status:** ✅ Comprehensive test coverage complete

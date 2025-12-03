@@ -1,7 +1,29 @@
 # TimePE Logging System
 
 ## Overview
-TimePE uses **Serilog** as its logging framework, providing structured logging with multiple output sinks and configurable log levels.
+TimePE uses **Serilog 4.3.0** as its logging framework, providing structured logging with multiple output sinks and configurable log levels. Logging is initialized in `Program.cs` and supports async flushing on application shutdown via `Log.CloseAndFlushAsync()`.
+
+## Setup (Program.cs)
+
+Serilog is configured early to capture startup logs:
+
+```csharp
+Log.Logger = new LoggerConfiguration()
+  .ReadFrom.Configuration(builder.Configuration)
+  .Enrich.FromLogContext()
+  .Enrich.WithProperty("Application", "TimePE")
+  .CreateLogger();
+
+builder.Host.UseSerilog((ctx, cfg) => cfg
+  .ReadFrom.Configuration(ctx.Configuration)
+  .Enrich.FromLogContext()
+  .Enrich.WithProperty("Application", "TimePE"));
+
+var app = builder.Build();
+
+await app.RunAsync();
+await Log.CloseAndFlushAsync();
+```
 
 ## Log Outputs
 
@@ -25,12 +47,42 @@ TimePE uses **Serilog** as its logging framework, providing structured logging w
 - **Level**: Error and Fatal only
 - **Purpose**: Quick access to application errors for troubleshooting
 
+### 4. Optional Production Sinks
+- **Seq** (`Serilog.Sinks.Seq`):
+  - Add to `WriteTo`: `{ "Name": "Seq", "Args": { "serverUrl": "http://seq:5341" } }`
+- **Application Insights** (`Serilog.Sinks.ApplicationInsights`):
+  - Add to `WriteTo`: `{ "Name": "ApplicationInsights", "Args": { "connectionString": "<AI-Connection-String>", "telemetryConverter": "Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights" } }`
+- **Console JSON** (`Serilog.Formatting.Json`):
+  - `{ "Name": "Console", "Args": { "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog" } }`
+
 ## Log Levels
 
 ### Production (appsettings.json)
 - **Default**: Information
 - **Microsoft**: Warning
 - **System**: Warning
+
+Example JSON:
+```json
+{
+  "Serilog": {
+    "Using": ["Serilog.Sinks.Console", "Serilog.Sinks.File"],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning"
+      }
+    },
+    "WriteTo": [
+      { "Name": "Console", "Args": { "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}" } },
+      { "Name": "File", "Args": { "path": "logs/timepe-.log", "rollingInterval": "Day", "retainedFileCountLimit": 30 } },
+      { "Name": "File", "Args": { "path": "logs/errors/timepe-errors-.log", "rollingInterval": "Day", "restrictedToMinimumLevel": "Error", "retainedFileCountLimit": 90 } }
+    ],
+    "Enrich": ["FromLogContext", "WithMachineName", "WithProcessId"]
+  }
+}
+```
 
 ### Development (appsettings.Development.json)
 - **Default**: Debug
@@ -45,7 +97,7 @@ All log entries include:
 - **MachineName**: Host machine identifier
 - **ProcessId**: Process ID of the application
 
-For HTTP requests:
+For HTTP requests (ASP.NET Core request logging):
 - **RequestMethod**: GET, POST, etc.
 - **RequestPath**: URL path
 - **StatusCode**: HTTP response code
@@ -70,6 +122,7 @@ For HTTP requests:
 ```
 2025-12-01 10:08:53.549 -05:00 [INF] HTTP GET / responded 200 in 109.2662 ms
 2025-12-01 10:08:56.421 -05:00 [INF] HTTP GET /Reports responded 200 in 42.4276 ms
+2025-12-01 10:08:59.001 -05:00 [WRN] HTTP POST /TimeEntries/Create responded 400 in 18.114 ms
 ```
 
 ### Authentication Events
@@ -102,6 +155,17 @@ Edit `appsettings.json` or `appsettings.Development.json`:
     }
   }
 }
+```
+
+### Request Logging Middleware
+
+Enable request logging for HTTP pipelines in `Program.cs`:
+
+```csharp
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 ```
 
 ### Adding Custom Loggers in Code
@@ -148,6 +212,7 @@ public class MyService
 **Logs too verbose:**
 1. Increase minimum log level in configuration
 2. Add overrides for specific namespaces
+3. In development, prefer `Information` unless debugging complex issues
 
 **Need more detailed logs:**
 1. Change level to `Debug` or `Verbose`
@@ -160,6 +225,25 @@ public class MyService
 - Do not log passwords, tokens, or sensitive user data
 - Use structured logging with placeholders: `{Parameter}` instead of string concatenation
 - Review log retention policies for compliance requirements
+
+## Shutdown & Flushing
+
+- Use `await Log.CloseAndFlushAsync()` after `app.RunAsync()` to ensure all buffered logs are flushed, especially for network sinks (Seq, AI).
+- Avoid abrupt termination; graceful shutdown ensures sinks complete writes.
+
+## Recommendations
+
+- **Development**: Console + rolling file
+- **Production (small deployments)**: Rolling file + Seq (optional)
+- **Production (Azure)**: Application Insights + rolling file (for local audit)
+- **Formatting**: Prefer structured logs with named properties; avoid plain strings.
+- **Retention**: Balance compliance and disk usage; 30/90 day defaults are a solid start.
+
+---
+
+**Last Updated:** December 2, 2025  
+**Framework:** .NET 9 with C# 13  
+**Serilog:** 4.3.0
 
 ## Performance
 
