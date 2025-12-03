@@ -32,38 +32,50 @@ TimePE/
 │   │   │   ├── TimeEntryService.cs
 │   │   │   ├── IncidentalService.cs
 │   │   │   ├── PaymentService.cs
-│   │   │   └── DashboardService.cs
+│   │   │   ├── DashboardService.cs
+│   │   │   ├── AuthService.cs
+│   │   │   └── CsvService.cs
 │   │   └── Database/
 │   │       ├── DatabaseContext.cs
 │   │       └── Migrations/
 │   │           └── DatabaseMigrator.cs
 │   │
-│   └── TimePE.WebApp/            # ASP.NET Core web application
-│       ├── Pages/                # Razor Pages
-│       │   ├── Account/          # Login/Logout/Profile pages
-│       │   ├── Projects/         # Project CRUD pages
-│       │   ├── PayRates/         # Pay rate management
-│       │   ├── TimeEntries/      # Time entry management
-│       │   ├── Incidentals/      # Incidentals tracking
-│       │   ├── Payments/         # Payment records
-│       │   ├── Reports/          # Report generation
-│       │   └── Shared/           # Layout and shared components
-│       ├── wwwroot/              # Static files
-│       │   ├── css/              
-│       │   │   └── site.css      # Mobile-responsive styles
-│       │   ├── js/
-│       │   │   └── site.js       # PWA and mobile enhancements
-│       │   ├── lib/              # Third-party libraries (Bootstrap, jQuery)
-│       │   ├── icons/            # PWA icons (13 sizes)
-│       │   ├── splash/           # iOS splash screens (10 sizes)
-│       │   ├── manifest.json     # PWA manifest
-│       │   ├── sw.js             # Service worker
-│       │   └── browserconfig.xml # Microsoft tiles config
-│       ├── Properties/
-│       │   └── launchSettings.json
-│       ├── appsettings.json
-│       ├── appsettings.Development.json
-│       └── Program.cs
+│   ├── TimePE.Core.Tests/        # Core business logic tests
+│   │   ├── Models/               # Model tests
+│   │   ├── Services/             # Service tests (142 tests)
+│   │   ├── xunit.runner.json     # Test runner configuration
+│   │   └── README.md
+│   │
+│   ├── TimePE.WebApp/            # ASP.NET Core web application
+│   │   ├── Pages/                # Razor Pages
+│   │   │   ├── Account/          # Login/Logout/Profile pages
+│   │   │   ├── Projects/         # Project CRUD pages
+│   │   │   ├── PayRates/         # Pay rate management
+│   │   │   ├── TimeEntries/      # Time entry management
+│   │   │   ├── Incidentals/      # Incidentals tracking
+│   │   │   ├── Payments/         # Payment records
+│   │   │   ├── Reports/          # Report generation
+│   │   │   └── Shared/           # Layout and shared components
+│   │   ├── wwwroot/              # Static files
+│   │   │   ├── css/              
+│   │   │   │   └── site.css      # Mobile-responsive styles
+│   │   │   ├── js/
+│   │   │   │   └── site.js       # PWA and mobile enhancements
+│   │   │   ├── lib/              # Third-party libraries (Bootstrap, jQuery)
+│   │   │   ├── icons/            # PWA icons (13 sizes)
+│   │   │   ├── splash/           # iOS splash screens (10 sizes)
+│   │   │   ├── manifest.json     # PWA manifest
+│   │   │   ├── sw.js             # Service worker
+│   │   │   └── browserconfig.xml # Microsoft tiles config
+│   │   ├── Properties/
+│   │   │   └── launchSettings.json
+│   │   ├── appsettings.json
+│   │   ├── appsettings.Development.json
+│   │   └── Program.cs
+│   │
+│   └── TimePE.WebApp.Tests/      # Web UI tests
+│       ├── PageResolutionTests.cs # Page routing tests
+│       └── README.md
 │
 ├── docs/                         # Documentation
 │   ├── PWA_IMPLEMENTATION.md     # PWA architecture guide

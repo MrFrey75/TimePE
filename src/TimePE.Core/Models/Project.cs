@@ -32,6 +32,14 @@ public class Project : BaseEntity
         set => SetPropertyValue(nameof(IsActive), ref _isActive, value);
     }
 
+    Address _address;
+    [Persistent]
+    public Address Address
+    {
+        get => _address;
+        set => SetPropertyValue(nameof(Address), ref _address, value);
+    }
+
     [Association("Project-TimeEntries")]
     public XPCollection<TimeEntry> TimeEntries => GetCollection<TimeEntry>(nameof(TimeEntries));
 }
