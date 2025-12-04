@@ -32,9 +32,9 @@ public class Project : BaseEntity
         set => SetPropertyValue(nameof(IsActive), ref _isActive, value);
     }
 
-    Address _address;
+    Address? _address;
     [Persistent]
-    public Address Address
+    public Address? Address
     {
         get => _address;
         set => SetPropertyValue(nameof(Address), ref _address, value);

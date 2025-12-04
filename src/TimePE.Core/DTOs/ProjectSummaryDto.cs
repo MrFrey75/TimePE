@@ -1,3 +1,5 @@
+using TimePE.Core.Models;
+
 namespace TimePE.Core.DTOs;
 
 public class ProjectSummaryDto
@@ -8,4 +10,5 @@ public class ProjectSummaryDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public int TimeEntriesCount { get; set; }
+    public Address? Address { get; set; }
 }

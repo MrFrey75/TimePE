@@ -40,6 +40,26 @@
                                 </span>
                             </dd>
 
+                            @if (Model.Project.Address != null && !string.IsNullOrWhiteSpace(Model.Project.Address.City))
+                            {
+                                <dt class="col-sm-4">Address</dt>
+                                <dd class="col-sm-8">
+                                    @if (!string.IsNullOrWhiteSpace(Model.Project.Address.StreetLine1))
+                                    {
+                                        @Model.Project.Address.StreetLine1<br />
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(Model.Project.Address.StreetLine2))
+                                    {
+                                        @Model.Project.Address.StreetLine2<br />
+                                    }
+                                    @Model.Project.Address.City@(Model.Project.Address.StateProvince != TimePE.Core.Models.StateProvince.Unknown ? ", " + Model.Project.Address.StateProvince : "")
+                                    @if (!string.IsNullOrWhiteSpace(Model.Project.Address.PostalCode))
+                                    {
+                                        @(" " + Model.Project.Address.PostalCode)
+                                    }
+                                </dd>
+                            }
+
                             <dt class="col-sm-4">Time Entries</dt>
                             <dd class="col-sm-8">
                                 <span class="badge bg-primary">@Model.Project.TimeEntriesCount entries</span>

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using TimePE.Core.Services;
 using DevExpress.Xpo;
 using TimePE.Core.Models;
@@ -29,6 +30,27 @@ public class EditModel : PageModel
     [BindProperty]
     public bool IsActive { get; set; }
 
+    [BindProperty]
+    public string? StreetLine1 { get; set; }
+
+    [BindProperty]
+    public string? StreetLine2 { get; set; }
+
+    [BindProperty]
+    public string? City { get; set; }
+
+    [BindProperty]
+    public StateProvince? StateProvince { get; set; }
+
+    [BindProperty]
+    public string? PostalCode { get; set; }
+
+    [BindProperty]
+    public AddressType AddressType { get; set; } = AddressType.Commercial;
+
+    public SelectList? StateProvinceList { get; set; }
+    public SelectList? AddressTypeList { get; set; }
+
     public async Task<IActionResult> OnGetAsync(int id)
     {
         var project = await _projectService.GetProjectByIdAsync(id);
@@ -40,28 +62,51 @@ public class EditModel : PageModel
         Description = project.Description;
         IsActive = project.IsActive;
 
+        if (project.Address != null)
+        {
+            StreetLine1 = project.Address.StreetLine1;
+            StreetLine2 = project.Address.StreetLine2;
+            City = project.Address.City;
+            StateProvince = project.Address.StateProvince;
+            PostalCode = project.Address.PostalCode;
+            AddressType = project.Address.AddressType;
+        }
+
+        StateProvinceList = new SelectList(Enum.GetValues(typeof(StateProvince)));
+        AddressTypeList = new SelectList(Enum.GetValues(typeof(AddressType)));
+
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
+        {
+            StateProvinceList = new SelectList(Enum.GetValues(typeof(StateProvince)));
+            AddressTypeList = new SelectList(Enum.GetValues(typeof(AddressType)));
             return Page();
+        }
 
         var project = await _projectService.GetProjectByIdAsync(Id);
         if (project == null)
             return NotFound();
 
-        using var uow = new UnitOfWork(XpoDefault.DataLayer);
-        var editProject = uow.GetObjectByKey<Project>(Id);
-        if (editProject != null)
+        Address? address = null;
+        if (!string.IsNullOrWhiteSpace(StreetLine1) || !string.IsNullOrWhiteSpace(City))
         {
-            editProject.Name = Name;
-            editProject.Description = Description;
-            editProject.IsActive = IsActive;
+            using var session = new Session(XpoDefault.DataLayer);
+            address = new Address(session)
+            {
+                StreetLine1 = StreetLine1 ?? string.Empty,
+                StreetLine2 = StreetLine2 ?? string.Empty,
+                City = City ?? string.Empty,
+                StateProvince = StateProvince ?? TimePE.Core.Models.StateProvince.Unknown,
+                PostalCode = PostalCode ?? string.Empty,
+                AddressType = AddressType
+            };
         }
 
-        await _projectService.UpdateProjectAsync(editProject!);
+        await _projectService.UpdateProjectWithAddressAsync(Id, Name, Description, IsActive, address);
         TempData["SuccessMessage"] = "Project updated successfully!";
         return RedirectToPage("Index");
     }

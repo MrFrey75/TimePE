@@ -233,7 +233,7 @@ public class CsvServiceTests : IDisposable
         var newProject = new Project(new UnitOfWork()) { Oid = 2, Name = "New Project" };
         _mockProjectService.Setup(x => x.GetActiveProjectsAsync())
             .ReturnsAsync(new List<Project>());
-        _mockProjectService.Setup(x => x.CreateProjectAsync("New Project", "Auto-created from CSV import"))
+        _mockProjectService.Setup(x => x.CreateProjectAsync("New Project", "Auto-created from CSV import", null))
             .ReturnsAsync(newProject);
 
         // Act
@@ -242,7 +242,7 @@ public class CsvServiceTests : IDisposable
         // Assert
         result.Success.Should().BeTrue();
         result.ImportedCount.Should().Be(1);
-        _mockProjectService.Verify(x => x.CreateProjectAsync("New Project", "Auto-created from CSV import"), Times.Once);
+        _mockProjectService.Verify(x => x.CreateProjectAsync("New Project", "Auto-created from CSV import", null), Times.Once);
         _mockTimeEntryService.Verify(x => x.CreateTimeEntryAsync(
             new DateTime(2025, 1, 15),
             new TimeSpan(9, 0, 0),

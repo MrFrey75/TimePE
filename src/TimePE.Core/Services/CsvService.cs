@@ -10,6 +10,9 @@ public interface ICsvService
     byte[] ExportTimeEntriesToCsv(IEnumerable<TimeEntry> entries);
     Task<(bool Success, string Message, int ImportedCount)> ImportTimeEntriesFromCsvAsync(Stream csvStream, string connectionString);
     byte[] GenerateSampleCsv();
+    byte[] ExportProjectsToCsv(IEnumerable<Project> projects);
+    Task<(bool Success, string Message, int ImportedCount)> ImportProjectsFromCsvAsync(Stream csvStream);
+    byte[] GenerateSampleProjectsCsv();
 }
 
 public class CsvService : ICsvService
@@ -223,5 +226,185 @@ public class CsvService : ICsvService
 
         fields.Add(currentField.ToString());
         return fields.ToArray();
+    }
+
+    public byte[] ExportProjectsToCsv(IEnumerable<Project> projects)
+    {
+        var csv = new StringBuilder();
+        
+        // Header
+        csv.AppendLine("Name,Description,IsActive,StreetLine1,StreetLine2,City,State,PostalCode,AddressType,CreatedAt");
+
+        // Data rows
+        foreach (var project in projects.OrderBy(p => p.Name))
+        {
+            var name = EscapeCsvField(project.Name);
+            var description = EscapeCsvField(project.Description ?? "");
+            var isActive = project.IsActive ? "Yes" : "No";
+            var streetLine1 = EscapeCsvField(project.Address?.StreetLine1 ?? "");
+            var streetLine2 = EscapeCsvField(project.Address?.StreetLine2 ?? "");
+            var city = EscapeCsvField(project.Address?.City ?? "");
+            var state = project.Address?.StateProvince.ToString() ?? "";
+            var postalCode = EscapeCsvField(project.Address?.PostalCode ?? "");
+            var addressType = project.Address?.AddressType.ToString() ?? "";
+            var createdAt = project.CreatedAt.ToString("yyyy-MM-dd");
+            
+            csv.AppendLine($"{name},{description},{isActive},{streetLine1},{streetLine2},{city},{state},{postalCode},{addressType},{createdAt}");
+        }
+
+        return Encoding.UTF8.GetBytes(csv.ToString());
+    }
+
+    public async Task<(bool Success, string Message, int ImportedCount)> ImportProjectsFromCsvAsync(Stream csvStream)
+    {
+        try
+        {
+            using var reader = new StreamReader(csvStream);
+            var lines = new List<string>();
+            
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    lines.Add(line);
+                }
+            }
+
+            if (lines.Count < 2)
+            {
+                return (false, "CSV file is empty or has no data rows", 0);
+            }
+
+            // Skip header
+            var dataLines = lines.Skip(1).ToList();
+            var importedCount = 0;
+            var errors = new List<string>();
+
+            foreach (var line in dataLines)
+            {
+                try
+                {
+                    var fields = ParseCsvLine(line);
+                    
+                    if (fields.Length < 1)
+                    {
+                        errors.Add($"Invalid row (no project name): {line}");
+                        continue;
+                    }
+
+                    // Parse fields
+                    var name = fields[0].Trim();
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        errors.Add($"Project name is required for row: {line}");
+                        continue;
+                    }
+
+                    var description = fields.Length > 1 ? fields[1].Trim() : null;
+                    var isActive = fields.Length > 2 && fields[2].Trim().Equals("Yes", StringComparison.OrdinalIgnoreCase);
+
+                    Address? address = null;
+                    if (fields.Length > 3)
+                    {
+                        var streetLine1 = fields.Length > 3 ? fields[3].Trim() : "";
+                        var streetLine2 = fields.Length > 4 ? fields[4].Trim() : "";
+                        var city = fields.Length > 5 ? fields[5].Trim() : "";
+                        var stateStr = fields.Length > 6 ? fields[6].Trim() : "";
+                        var postalCode = fields.Length > 7 ? fields[7].Trim() : "";
+                        var addressTypeStr = fields.Length > 8 ? fields[8].Trim() : "";
+
+                        if (!string.IsNullOrWhiteSpace(streetLine1) || !string.IsNullOrWhiteSpace(city))
+                        {
+                            using var session = new Session(XpoDefault.DataLayer);
+                            
+                            var stateProvince = StateProvince.Unknown;
+                            if (!string.IsNullOrEmpty(stateStr) && Enum.TryParse<StateProvince>(stateStr, out var parsedState))
+                            {
+                                stateProvince = parsedState;
+                            }
+
+                            var addressType = AddressType.Commercial;
+                            if (!string.IsNullOrEmpty(addressTypeStr) && Enum.TryParse<AddressType>(addressTypeStr, out var parsedType))
+                            {
+                                addressType = parsedType;
+                            }
+
+                            address = new Address(session)
+                            {
+                                StreetLine1 = streetLine1,
+                                StreetLine2 = streetLine2,
+                                City = city,
+                                StateProvince = stateProvince,
+                                PostalCode = postalCode,
+                                AddressType = addressType
+                            };
+                        }
+                    }
+
+                    // Check if project already exists
+                    var existingProjects = await _projectService.GetAllProjectsAsync();
+                    var existingProject = existingProjects.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                    
+                    if (existingProject == null)
+                    {
+                        // Create new project
+                        await _projectService.CreateProjectAsync(name, description, address);
+                        importedCount++;
+                    }
+                    else
+                    {
+                        errors.Add($"Project '{name}' already exists, skipping");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"Error processing row: {line} - {ex.Message}");
+                }
+            }
+
+            var message = $"Successfully imported {importedCount} projects";
+            if (errors.Any())
+            {
+                message += $". {errors.Count} errors/skips occurred: " + string.Join("; ", errors.Take(5));
+                if (errors.Count > 5)
+                {
+                    message += $" (and {errors.Count - 5} more...)";
+                }
+            }
+
+            return (true, message, importedCount);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error reading CSV file: {ex.Message}", 0);
+        }
+    }
+
+    public byte[] GenerateSampleProjectsCsv()
+    {
+        var csv = new StringBuilder();
+        
+        // Header
+        csv.AppendLine("Name,Description,IsActive,StreetLine1,StreetLine2,City,State,PostalCode,AddressType,CreatedAt");
+        
+        // Sample rows
+        csv.AppendLine("\"Office Renovation\",\"Main office building renovation project\",Yes,\"123 Main St\",\"Suite 100\",\"Springfield\",IL,62701,Commercial,2025-01-01");
+        csv.AppendLine("\"Home Office\",\"Remote work setup\",Yes,\"456 Oak Ave\",,\"Chicago\",IL,60601,Residential,2025-01-15");
+        csv.AppendLine("\"Client Site - ABC Corp\",\"On-site client work\",Yes,\"789 Business Pkwy\",\"Building A\",\"Naperville\",IL,60540,Commercial,2025-02-01");
+
+        // Instructions as comments
+        csv.AppendLine();
+        csv.AppendLine("# IMPORT INSTRUCTIONS:");
+        csv.AppendLine("# - Name is required");
+        csv.AppendLine("# - Description is optional");
+        csv.AppendLine("# - IsActive: Yes or No (default: No)");
+        csv.AppendLine("# - Address fields are all optional");
+        csv.AppendLine("# - State: Use 2-letter abbreviation (e.g., IL, CA, NY)");
+        csv.AppendLine("# - AddressType: Residential, Commercial, or Rental");
+        csv.AppendLine("# - Duplicate project names will be skipped");
+        csv.AppendLine("# - Delete these instruction lines and the sample data before importing your own data");
+
+        return Encoding.UTF8.GetBytes(csv.ToString());
     }
 }

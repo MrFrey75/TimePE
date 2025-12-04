@@ -50,7 +50,7 @@ public class Address : BaseEntity
         set => SetPropertyValue(nameof(PostalCode), ref _postalCode, value);
     }
 
-    AddressType _addressType = AddressType.MI;
+    AddressType _addressType = AddressType.Unknown;
     [Persistent]
     public AddressType AddressType
     {

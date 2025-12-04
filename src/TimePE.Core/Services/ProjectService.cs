@@ -7,13 +7,14 @@ namespace TimePE.Core.Services;
 
 public interface IProjectService
 {
-    Task<Project> CreateProjectAsync(string name, string? description = null);
+    Task<Project> CreateProjectAsync(string name, string? description = null, Address? address = null);
     Task<Project?> GetProjectByIdAsync(int id);
     Task<ProjectDeleteViewModel?> GetProjectDeleteInfoAsync(int id);
     Task<IEnumerable<Project>> GetActiveProjectsAsync();
     Task<IEnumerable<Project>> GetAllProjectsAsync(bool includeDeleted = false);
     Task<IEnumerable<ProjectSummaryDto>> GetAllProjectSummariesAsync(bool includeDeleted = false);
     Task UpdateProjectAsync(Project project);
+    Task UpdateProjectWithAddressAsync(int projectId, string name, string? description, bool isActive, Address? address);
     Task DeleteProjectAsync(int id);
 }
 
@@ -24,6 +25,7 @@ public class ProjectDeleteViewModel
     public string? Description { get; set; }
     public bool IsActive { get; set; }
     public int TimeEntriesCount { get; set; }
+    public Address? Address { get; set; }
 }
 
 public class ProjectService : IProjectService
@@ -35,7 +37,7 @@ public class ProjectService : IProjectService
         _connectionString = connectionString;
     }
 
-    public async Task<Project> CreateProjectAsync(string name, string? description = null)
+    public async Task<Project> CreateProjectAsync(string name, string? description = null, Address? address = null)
     {
         return await Task.Run(() =>
         {
@@ -46,6 +48,21 @@ public class ProjectService : IProjectService
                 Description = description,
                 IsActive = true
             };
+            
+            if (address != null)
+            {
+                var projectAddress = new Address(uow)
+                {
+                    StreetLine1 = address.StreetLine1,
+                    StreetLine2 = address.StreetLine2,
+                    City = address.City,
+                    StateProvince = address.StateProvince,
+                    PostalCode = address.PostalCode,
+                    AddressType = address.AddressType
+                };
+                project.Address = projectAddress;
+            }
+            
             uow.CommitChanges();
             return project;
         });
@@ -78,7 +95,8 @@ public class ProjectService : IProjectService
                 Name = project.Name,
                 Description = project.Description,
                 IsActive = project.IsActive,
-                TimeEntriesCount = timeEntriesCount
+                TimeEntriesCount = timeEntriesCount,
+                Address = project.Address
             };
         });
     }
@@ -129,7 +147,8 @@ public class ProjectService : IProjectService
                 Description = p.Description,
                 IsActive = p.IsActive,
                 CreatedAt = p.CreatedAt,
-                TimeEntriesCount = p.TimeEntries.Count
+                TimeEntriesCount = p.TimeEntries.Count,
+                Address = p.Address
             }).ToList();
         });
     }
@@ -146,6 +165,58 @@ public class ProjectService : IProjectService
                 existingProject.Description = project.Description;
                 existingProject.IsActive = project.IsActive;
                 existingProject.UpdatedAt = DateTime.UtcNow;
+                uow.CommitChanges();
+            }
+        });
+    }
+
+    public async Task UpdateProjectWithAddressAsync(int projectId, string name, string? description, bool isActive, Address? address)
+    {
+        await Task.Run(() =>
+        {
+            using var uow = new UnitOfWork(XpoDefault.DataLayer);
+            var existingProject = uow.GetObjectByKey<Project>(projectId);
+            if (existingProject != null)
+            {
+                existingProject.Name = name;
+                existingProject.Description = description;
+                existingProject.IsActive = isActive;
+                existingProject.UpdatedAt = DateTime.UtcNow;
+                
+                if (address != null)
+                {
+                    if (existingProject.Address == null)
+                    {
+                        // Create new address
+                        existingProject.Address = new Address(uow)
+                        {
+                            StreetLine1 = address.StreetLine1,
+                            StreetLine2 = address.StreetLine2,
+                            City = address.City,
+                            StateProvince = address.StateProvince,
+                            PostalCode = address.PostalCode,
+                            AddressType = address.AddressType
+                        };
+                    }
+                    else
+                    {
+                        // Update existing address
+                        existingProject.Address.StreetLine1 = address.StreetLine1;
+                        existingProject.Address.StreetLine2 = address.StreetLine2;
+                        existingProject.Address.City = address.City;
+                        existingProject.Address.StateProvince = address.StateProvince;
+                        existingProject.Address.PostalCode = address.PostalCode;
+                        existingProject.Address.AddressType = address.AddressType;
+                        existingProject.Address.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+                else if (existingProject.Address != null)
+                {
+                    // Remove address if null is passed
+                    existingProject.Address.Delete();
+                    existingProject.Address = null;
+                }
+                
                 uow.CommitChanges();
             }
         });

@@ -13,11 +13,48 @@
             <p class="text-muted">Manage your work projects</p>
         </div>
         <div class="col-md-4 text-end">
-            <a asp-page="Create" class="btn btn-primary btn-lg">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-download"></i> Import/Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                        <i class="bi bi-upload"></i> Import Projects
+                    </a></li>
+                    <li>
+                        <form method="post" asp-page-handler="Export" class="d-inline">
+                            <button type="submit" class="dropdown-item">
+                                <i class="bi bi-download"></i> Export Projects
+                            </button>
+                        </form>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" asp-page-handler="DownloadSample">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Download Sample CSV
+                    </a></li>
+                </ul>
+            </div>
+            <a asp-page="Create" class="btn btn-primary btn-lg ms-2">
                 <i class="bi bi-plus-circle"></i> New Project
             </a>
         </div>
     </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
     <div class="row g-4">
         @if (Model.Projects.Any())
@@ -48,6 +85,25 @@
                             else
                             {
                                 <p class="card-text text-muted small fst-italic">No description</p>
+                            }
+
+                            @if (project.Address != null && !string.IsNullOrWhiteSpace(project.Address.City))
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        @if (!string.IsNullOrWhiteSpace(project.Address.StreetLine1))
+                                        {
+                                            @project.Address.StreetLine1
+                                            <br />
+                                        }
+                                        @project.Address.City@(project.Address.StateProvince != TimePE.Core.Models.StateProvince.Unknown ? ", " + project.Address.StateProvince : "")
+                                        @if (!string.IsNullOrWhiteSpace(project.Address.PostalCode))
+                                        {
+                                            @(" " + project.Address.PostalCode)
+                                        }
+                                    </small>
+                                </div>
                             }
 
                             <div class="mt-3">
@@ -84,5 +140,48 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="bi bi-upload"></i> Import Projects from CSV
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-page-handler="Import" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>CSV Format:</strong> Name, Description, IsActive, StreetLine1, StreetLine2, City, State, PostalCode, AddressType
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Select CSV File</label>
+                        <input asp-for="ImportFile" class="form-control" type="file" accept=".csv" required />
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Note:</strong> Projects with duplicate names will be skipped.
+                    </div>
+
+                    <p class="text-muted small mb-0">
+                        Don't have a CSV file? 
+                        <a asp-page-handler="DownloadSample" class="alert-link">Download a sample template</a>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Import Projects
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

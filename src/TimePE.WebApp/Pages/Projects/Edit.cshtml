@@ -30,11 +30,53 @@
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
-                        <div class="form-check mb-3">
+                        <div class="form-check mb-4">
                             <input asp-for="IsActive" class="form-check-input" type="checkbox" />
                             <label asp-for="IsActive" class="form-check-label">
                                 Active Project
                             </label>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-geo-alt"></i> Address (Optional)</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="StreetLine1" class="form-label">Street Address</label>
+                            <input asp-for="StreetLine1" class="form-control" placeholder="123 Main St" />
+                            <span asp-validation-for="StreetLine1" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="StreetLine2" class="form-label">Street Address Line 2 <span class="text-muted">(optional)</span></label>
+                            <input asp-for="StreetLine2" class="form-control" placeholder="Apt, Suite, Unit, Building, Floor, etc." />
+                            <span asp-validation-for="StreetLine2" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="City" class="form-label">City</label>
+                                <input asp-for="City" class="form-control" placeholder="City" />
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="StateProvince" class="form-label">State</label>
+                                <select asp-for="StateProvince" asp-items="Model.StateProvinceList" class="form-select">
+                                    <option value="">Select...</option>
+                                </select>
+                                <span asp-validation-for="StateProvince" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="PostalCode" class="form-label">Zip Code</label>
+                                <input asp-for="PostalCode" class="form-control" placeholder="12345" />
+                                <span asp-validation-for="PostalCode" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AddressType" class="form-label">Address Type</label>
+                            <select asp-for="AddressType" asp-items="Model.AddressTypeList" class="form-select">
+                            </select>
+                            <span asp-validation-for="AddressType" class="text-danger small"></span>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
